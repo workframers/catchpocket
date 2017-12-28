@@ -10,3 +10,10 @@ harvester depends on the datomic libraries being installed locally. To do so:
 - Unzip it somewhere
 - From the root of that folder, run `bin/maven-install` to install the
   client libraries in your local repository.
+
+## Running
+
+```
+clj -m harvester.main generate datomic:dev://localhost:4334/workframe
+```
+

@@ -25,3 +25,4 @@ build.xml
 .elasticbeanstalk/*
 !.elasticbeanstalk/config.yml
 !.elasticbeanstalk/*.global.yml
+.cpcache
