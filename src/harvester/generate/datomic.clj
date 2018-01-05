@@ -24,33 +24,37 @@
   ([id]
    (attr-name id false))
   ([id capitalize?]
-   (->> (-> id
-            name
-            (string/split #"[^A-Za-z0-9]+"))
-        (remove string/blank?)
-        (map (if capitalize? string/capitalize identity))
-        (string/join "_"))))
+   (let [xform (if capitalize? string/capitalize identity)
+         join  (if capitalize? "" "_")]
+     (->> (-> id
+              name
+              (string/split #"[^A-Za-z0-9]+"))
+          (remove string/blank?)
+          (map xform)
+          (string/join join)
+          keyword))))
 
 (defn annotate-docs [attr docstring]
-  (let [note (format "> *datomic attribute: `%s`*" :attribute/ident attr)]
+  (let [note (format "> *datomic attribute: `%s`*" (:ident attr))]
     (if (string/blank? docstring)
       note
       (str docstring "\n\n" note))))
 
 
 (defn attr-info [attr doc]
-  {:attribute/name        (attr-name (:ident attr))
-   :attribute/ident       (:ident attr)
-   :attribute/type        (:value-type attr)
-   :attribute/cardinality (:cardinality attr)
-   :attribute/doc         (annotate-docs attr doc)
-   :attribute/unique      (:unique attr)
-   :attribute/component?  (:is-component attr)})
+  {:attribute/lacinia-name (attr-name (:ident attr))
+   :attribute/ident        (:ident attr)
+   :attribute/field-type   (:value-type attr)
+   :attribute/cardinality  (:cardinality attr)
+   :attribute/doc          (annotate-docs attr doc)
+   :attribute/unique       (:unique attr)
+   :attribute/component?   (:is-component attr)})
 
 
 (defn add-attr [accum [ns attrs doc]]
-  (update accum ns #((fnil conj #{}) % (attr-info attrs doc))))
+  (update accum (attr-name ns true)
+          #((fnil conj #{}) % (attr-info attrs doc))))
 
-(defn form [db options]
+(defn scan [db options]
   (let [attrs (attr-list db)]
     (reduce add-attr {} attrs)))

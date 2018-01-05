@@ -3,8 +3,6 @@
             [clojure.tools.cli :as cli]
             [clojure.string :as string]))
 
-(def cli-usage "lein harvester DATOMIC-URI")
-
 (def cli-options
   [["-d" "--debug" "Produce debug output"
     :default false]
@@ -52,7 +50,11 @@
   (let [{:keys [::action ::options ::exit-message ::ok? ::datomic-uri]} (validate-args args)]
     (when exit-message
       (exit! (if ok? 0 1) exit-message))
-    (case action
-      :generate (g/generate datomic-uri options)
-      (exit! 1 (format "Unknown action %s!" action)))
+    (try
+      (case action
+        :generate (g/generate datomic-uri options)
+        (exit! 1 (format "Unknown action %s!" action)))
+      (catch Exception e
+        (.printStackTrace e)
+        (exit! 1 (.getMessage e))))
     (System/exit 0)))

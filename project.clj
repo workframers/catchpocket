@@ -10,11 +10,10 @@
                  [org.clojure/tools.cli "0.3.5"]
                  [mvxcvi/puget "1.0.2"]
                  [fipp "0.6.12"]
+                 [aero "1.1.2"]
                  [io.aviso/pretty "0.1.34"]
                  [com.datomic/datomic-pro "0.9.5656"]
                  [com.datomic/clj-client "0.8.606"]]
-
-  ; :plugins [[lein-ancient "1.1.4"]]
 
   :min-lein-version "2.8.1"
 

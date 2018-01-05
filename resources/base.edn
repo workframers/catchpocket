@@ -1,0 +1,13 @@
+;; Basic EDN configuration file
+{:interfaces
+ {:DatomicEntity
+  {:fields {:db_id {:type        ID
+                    :description "Base type for datomic entities"}}}}
+ :objects
+ {}
+
+ :queries
+ {}
+
+ :mutations
+ {}}
