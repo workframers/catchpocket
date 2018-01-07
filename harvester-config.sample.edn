@@ -1,0 +1,4 @@
+;; Sample config file for harvester
+{
+ :harvester/options
+ {:option/color true}}

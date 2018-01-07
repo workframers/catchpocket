@@ -1,16 +1,19 @@
 (ns harvester.main
   (:require [harvester.generate.core :as g]
+            [harvester.logging :as logging]
             [clojure.tools.cli :as cli]
+            [taoensso.timbre :as log]
             [clojure.string :as string]))
 
 (def cli-options
-  [["-d" "--debug" "Produce debug output"
-    :default false]
+  [["-d" "--debug" "Produce debug output" :default false]
+   ["" "--color" "Produce color logs" :default true]
+   ["-h" "--help" "Print usage information" :default false]
    ["-o" "--output-dir" "Directory to produce files in"
     :default "target/harvester"]])
 
 (defn usage [options-summary]
-  (->> ["Usage: lein harvester ACTION DATOMIC-URI"
+  (->> ["Usage: lein harvester [options] ACTION DATOMIC-URI"
         ""
         "Options:"
         options-summary
@@ -27,19 +30,19 @@
 (defn validate-args [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
-      (:help options) ; help => exit OK with usage summary
+      (:help options)                                       ; help => exit OK with usage summary
       {::exit-message (usage summary) ::ok? true}
 
-      errors ; errors => exit with description of errors
+      errors                                                ; errors => exit with description of errors
       {::exit-message (error-msg errors)}
 
       (and (= 2 (count arguments))
            (#{"generate"} (first arguments)))
-      {::action (-> arguments first keyword)
-       ::options options
+      {::action      (-> arguments first keyword)
+       ::options     options
        ::datomic-uri (second arguments)}
 
-      :else ; failed custom validation => exit with usage summary
+      :else                                                 ; failed custom validation => exit with usage summary
       {::exit-message (usage summary)})))
 
 (defn exit! [status msg]
@@ -48,6 +51,7 @@
 
 (defn -main [& args]
   (let [{:keys [::action ::options ::exit-message ::ok? ::datomic-uri]} (validate-args args)]
+    (logging/config-logging! options)
     (when exit-message
       (exit! (if ok? 0 1) exit-message))
     (try
@@ -55,6 +59,6 @@
         :generate (g/generate datomic-uri options)
         (exit! 1 (format "Unknown action %s!" action)))
       (catch Exception e
-        (.printStackTrace e)
+        (log/errorf e "Exception caught during %s: %s" (name action) (.getMessage e))
         (exit! 1 (.getMessage e))))
     (System/exit 0)))

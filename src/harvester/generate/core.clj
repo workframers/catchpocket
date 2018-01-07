@@ -2,12 +2,10 @@
   (:require [datomic.api :as d]
             [harvester.generate.datomic :as datomic]
             [puget.printer :as puget]
+            [taoensso.timbre :as log]
             [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clojure.string :as string]))
-
-(defn make-ent-map [db options]
-  {:ok "then"})
 
 (defn read-edn [name]
   (some-> name
@@ -31,9 +29,6 @@
    :db.type/uri     'String
    :db.type/bytes   'String})
 
-(defn handle-field-type [x]
-  x)
-
 (defn get-field-type [field]
   (let [field-type (:attribute/field-type field)
         lacinia-type (get datomic-to-lacinia field-type)]
@@ -49,10 +44,8 @@
       ':DatomicEntity
 
       :else
-      (do
-        (printf "Skipping unknown field %s with type %s.\n"
-                (:attribute/ident field) field-type)
-        nil))))
+      (log/infof "Skipping unknown field %s with type %s."
+                 (:attribute/ident field) field-type))))
 
 (defn make-single-field [field]
   (let [{:keys [:attribute/field-type :attribute/cardinality
@@ -93,14 +86,17 @@
 
 
 (defn generate-edn [base ent-map]
+  (log/infof "Generating lacinia schema for %d entity types..." (count ent-map))
   (-> base
       (assoc :objects (create-objects ent-map))))
 
 (defn generate [datomic-uri options]
+  (log/infof "Connecting to %s..." datomic-uri)
   (let [conn     (d/connect datomic-uri)
         db       (d/db conn)
         base-edn (read-edn "lacinia-base.edn")
         ent-map  (datomic/scan db options)
         result   (generate-edn base-edn ent-map)
         color?   (some? (System/console))]
-    (puget/pprint result {:print-color color?})))
+    #_(puget/pprint result {:print-color color?}))
+  (log/info "Finished generation."))

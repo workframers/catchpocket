@@ -1,6 +1,7 @@
 (ns harvester.generate.datomic
   (:require [datomic.api :as d]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [taoensso.timbre :as log]))
 
 (defn tdb []
   (-> "datomic:dev://localhost:4334/workframe"
@@ -56,5 +57,6 @@
           #((fnil conj #{}) % (attr-info attrs doc))))
 
 (defn scan [db options]
+  (log/info "Scanning datomic attributes...")
   (let [attrs (attr-list db)]
     (reduce add-attr {} attrs)))
