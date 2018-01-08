@@ -1,4 +1,4 @@
-(defproject com.workframe/harvester "0.1.0-SNAPSHOT"
+(defproject com.workframe/catchpocket "0.1.0-SNAPSHOT"
   :description "datomic-to-lacinia schema extractor"
   :url "https://github.com/workframers/harvester"
   :pedantic? :warn
