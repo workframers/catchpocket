@@ -1,4 +1,4 @@
-;; Sample config file for harvester
+;; Sample config file for catchpocket
 {
- :harvester/options
+ :catchpocket/options
  {:option/color true}}

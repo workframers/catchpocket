@@ -1,6 +1,6 @@
 (defproject com.workframe/catchpocket "0.1.0-SNAPSHOT"
   :description "datomic-to-lacinia schema extractor"
-  :url "https://github.com/workframers/harvester"
+  :url "https://github.com/workframers/catchpocket"
   :pedantic? :warn
   :license {:name "EPL"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
@@ -21,6 +21,6 @@
 
   :source-paths ["src"]
 
-  :main harvester.main
+  :main catchpocket.main
 
   :profiles {:dev {:plugins [[lein-ancient "0.6.15"]]}})

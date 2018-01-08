@@ -1,4 +1,4 @@
-(ns harvester.generate.datomic
+(ns catchpocket.generate.datomic
   (:require [datomic.api :as d]
             [clojure.string :as string]
             [taoensso.timbre :as log]))

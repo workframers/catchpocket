@@ -1,6 +1,6 @@
-(ns harvester.main
-  (:require [harvester.generate.core :as g]
-            [harvester.logging :as logging]
+(ns catchpocket.main
+  (:require [catchpocket.generate.core :as g]
+            [catchpocket.logging :as logging]
             [clojure.tools.cli :as cli]
             [taoensso.timbre :as log]
             [clojure.string :as string]))
@@ -10,10 +10,10 @@
    ["" "--color" "Produce color logs" :default true]
    ["-h" "--help" "Print usage information" :default false]
    ["-o" "--output-dir" "Directory to produce files in"
-    :default "target/harvester"]])
+    :default "target/catchpocket"]])
 
 (defn usage [options-summary]
-  (->> ["Usage: lein harvester [options] ACTION DATOMIC-URI"
+  (->> ["Usage: lein catchpocket [options] ACTION DATOMIC-URI"
         ""
         "Options:"
         options-summary

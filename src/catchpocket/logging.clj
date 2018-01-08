@@ -1,4 +1,4 @@
-(ns harvester.logging
+(ns catchpocket.logging
   (:require [taoensso.timbre :as timbre]
             [puget.color.ansi :as ansi]
             [cuerdas.core :as str])

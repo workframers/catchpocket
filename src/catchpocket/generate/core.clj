@@ -1,6 +1,6 @@
-(ns harvester.generate.core
+(ns catchpocket.generate.core
   (:require [datomic.api :as d]
-            [harvester.generate.datomic :as datomic]
+            [catchpocket.generate.datomic :as datomic]
             [puget.printer :as puget]
             [taoensso.timbre :as log]
             [clojure.java.io :as io]
