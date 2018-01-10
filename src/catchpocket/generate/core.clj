@@ -4,6 +4,7 @@
             [puget.printer :as puget]
             [taoensso.timbre :as log]
             [clojure.java.io :as io]
+            [fipp.edn :as fipp]
             [clojure.edn :as edn]
             [clojure.string :as string]))
 
@@ -30,7 +31,7 @@
    :db.type/bytes   'String})
 
 (defn get-field-type [field]
-  (let [field-type (:attribute/field-type field)
+  (let [field-type   (:attribute/field-type field)
         lacinia-type (get datomic-to-lacinia field-type)]
     (cond
       ;; ASSUMPTION
@@ -56,12 +57,12 @@
                        lacinia-type)]
     (when lacinia-type
       (merge
-        {:type full-type}
-        (when doc
-          {:description doc})))))
+       {:type full-type}
+       (when doc
+         {:description doc})))))
 
 (defn assoc-db-id [field-def]
-  (assoc field-def :db_id {:type 'ID
+  (assoc field-def :db_id {:type        'ID
                            :description "Unique :db/id value for a datomic entity"}))
 
 (defn make-fields [field-defs]
@@ -90,13 +91,20 @@
   (-> base
       (assoc :objects (create-objects ent-map))))
 
+(defn write-file! [schema options]
+  (let [filename (str (:output-dir options) "/catchpocket.edn")]
+    (io/make-parents filename)
+    (spit filename (with-out-str (fipp/pprint schema)))
+    (log/infof "Saved schema to %s" filename)))
+
 (defn generate [datomic-uri options]
   (log/infof "Connecting to %s..." datomic-uri)
   (let [conn     (d/connect datomic-uri)
         db       (d/db conn)
         base-edn (read-edn "lacinia-base.edn")
         ent-map  (datomic/scan db options)
-        result   (generate-edn base-edn ent-map)
-        color?   (some? (System/console))]
-    #_(puget/pprint result {:print-color color?}))
+        schema   (generate-edn base-edn ent-map)]
+    (write-file! schema options)
+    (when (:debug options)
+      (puget/pprint schema {:print-color (some? (System/console))})))
   (log/info "Finished generation."))

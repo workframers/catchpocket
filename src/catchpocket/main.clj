@@ -7,7 +7,7 @@
 
 (def cli-options
   [["-d" "--debug" "Produce debug output" :default false]
-   ["" "--color" "Produce color logs" :default true]
+   [nil "--color" "Produce color logs" :default true]
    ["-h" "--help" "Print usage information" :default false]
    ["-o" "--output-dir" "Directory to produce files in"
     :default "target/catchpocket"]])

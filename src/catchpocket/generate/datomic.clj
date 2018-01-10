@@ -53,8 +53,10 @@
 
 
 (defn add-attr [accum [ns attrs doc]]
-  (update accum (attr-name ns true)
-          #((fnil conj #{}) % (attr-info attrs doc))))
+  (if (= ns "fressian")
+    accum
+    (update accum (attr-name ns true)
+            #((fnil conj #{}) % (attr-info attrs doc)))))
 
 (defn scan [db options]
   (log/info "Scanning datomic attributes...")
