@@ -17,30 +17,55 @@ catchpocket depends on the datomic libraries being installed locally. To do so:
 lein run generate datomic:dev://localhost:4334/my-db-name
 ```
 
+### Testing
+
+See the [stillsuit-sample](https://github.com/workframers/stillsuit-sample)
+project for some instructions on quickly setting up graphiql for a datomic database.
+
 ## How does it work?
 
-catchpocket inspects a datomic database and gets metadata about its attributes
-and inspects its data to do a bit of inference about how to map entity data to
-lacinia schema information.
-
-Because it takes a naive approach, catchpocket needs some additional information
-in order to generate a more useful schema. You can provide this information
-
-it then generates a lacinia schema configuration.
+catchpocket inspects a datomic database and gets metadata about its attributes;
+it then inspects its data to do a bit of inference about how to map entity data
+to lacinia schema information. It then generates a lacinia schema configuration.
 
 catchpocket works by making a bunch of assumptions about the way your data
 is set up that may not be true (and are conventions datomic doesn't enforce):
 
 - It assumes that every entity has a distinct namespace, so that a `:user`
-  entity `:user/id` and `:user/name` attributes, but not an `:address/postal-code`
-  attribute.
-- It
+  entity has `:user/id` and `:user/name` attributes, but not an
+  `:address/postal-code` attribute.
+- It assumes that attribute refs always point to the same type of entity.
 
-##
+These assumptions are probably incorrect for many datomic databases. You can
+control what actions catchpocket takes via a config file to ameliorate some
+of the attendant problems.
+
+## Configuration
+
+catchpocket reads its configuration from two primary sources.
+
+- A config file (in EDN)
+- Optionally, metadata in the datomic database itself.
+
+## Output
+
+When it's finished, catchpocket generates an EDN file which can then be used
+as a lacinia schema.
+
+Because many datomic primitives are not directly supported in GraphQL,
+catchpocket currently assumes that you will use the
+[stillsuit](https://github.com/workframers/stillsuit) library in conjunction
+with the generated schema in order to provide some default resolvers for
+references and other datomic types.
 
 ## Similar projects
 
 The [umlaut](https://github.com/workco/umlaut) project works off of a graphql
 schema as its primary input, and is then capable of generating a datomic schema
 from the schema, along with specs, graphviz diagrams, and a bunch of other
-cool stuff.
+cool stuff. Where catchpocket is database-first, umlaut is document-first.
+
+### Why "catchpocket"?
+
+In Frank Herbert's _Dune_ novels, a catchpocket is a place where precious water
+is stored.
