@@ -15,22 +15,29 @@
 (defn- make-query-name
   [lacinia-type lacinia-name config]
   (-> (str lacinia-type "_by_" lacinia-name)
-      (str/snake)))
+      (str/snake)
+      keyword))
+
+(defn- query-definition
+  [lacinia-type {:keys [:attribute/lacinia-name] :as attr-info} config]
+  (let []
+    {:type        lacinia-type
+     :args        {lacinia-name {:type '(non-null ID)
+                                 :description "The unique ID"}}}))
+     ;:resolve     (resolvers/resolve-entity-by-unique-attribute )
+     ;:description "Return the current time."}))
 
 (defn- make-query-for
   [lacinia-type {:keys [:attribute/lacinia-name] :as attr-info} config]
   (let [qname (make-query-name lacinia-type lacinia-name config)]
-    [qname qname]))
-
-(defn- accumulate-query
-  [config accum [lacinia-type {:keys [:attribute/unique] :as attr-info}]]
-  (if-not unique
-    accum
-    (let [[query-name query-details] (make-query-for lacinia-type attr-info config)]
-      (assoc accum query-name query-details))))
+    [qname (query-definition lacinia-type attr-info config)]))
 
 (defn attach-queries
   [schema entity-map config]
-  (let [queries (reduce (partial accumulate-query config) {} entity-map)]
+  (let [queries (->> (for [[lacinia-type attr-set] entity-map
+                           attr-info               attr-set
+                           :when (:attribute/unique attr-info)]
+                       (make-query-for lacinia-type attr-info config))
+                     (into {}))]
     (log/spy queries)
     schema))

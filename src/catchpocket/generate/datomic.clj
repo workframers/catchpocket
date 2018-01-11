@@ -71,11 +71,13 @@
 
 
 (defn add-attr [accum [ns attrs doc]]
-  ;(log/spy attrs)
   (update accum (attr-name ns true)
           #((fnil conj #{}) % (attr-info attrs doc))))
 
-(defn scan [db options]
+(defn scan
+  "Produce an entity map - a map of lacinia type names to a set of attribute maps,
+  where each attribute map corresponds to one datomic attribute as returned by (attr-info)."
+  [db options]
   (log/info "Scanning datomic attributes...")
   (let [attrs (attr-list db)]
     (reduce add-attr {} attrs)))
