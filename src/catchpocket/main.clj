@@ -13,13 +13,10 @@
     :default "target/catchpocket"]])
 
 (defn usage [options-summary]
-  (->> ["Usage: lein catchpocket [options] CONFIG-FILE ACTION"
+  (->> ["Usage: lein catchpocket [options] CONFIG-FILE"
         ""
         "Options:"
         options-summary
-        ""
-        "Actions:"
-        "  generate  create new lacinia schema files from the datomic database"
         ""]
        (string/join \newline)))
 
@@ -30,19 +27,18 @@
 (defn validate-args [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
-      (:help options)                                       ; help => exit OK with usage summary
+      (:help options)                              ; help => exit OK with usage summary
       {::exit-message (usage summary) ::ok? true}
 
-      errors                                                ; errors => exit with description of errors
+      errors                                       ; errors => exit with description of errors
       {::exit-message (error-msg errors)}
 
-      (and (= 2 (count arguments))
-           (#{"generate"} (second arguments)))
-      {::action      (-> arguments second keyword)
+      (and (= 1 (count arguments)))
+      {::action      ::generate
        ::options     options
        ::config-file (first arguments)}
 
-      :else                                                 ; failed custom validation => exit with usage summary
+      :else                                        ; failed validation => exit with usage summary
       {::exit-message (usage summary)})))
 
 (defn exit!
@@ -60,7 +56,7 @@
     (try
       (let [config (cf/construct-config config-file options)]
         (case action
-          :generate (g/generate config)
+          ::generate (g/generate config)
           (exit! 1 (format "Unknown action %s!" action))))
       (catch Exception e
         (when-not (-> e ex-data :die?)
