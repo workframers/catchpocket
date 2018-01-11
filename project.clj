@@ -11,6 +11,7 @@
                  [mvxcvi/puget "1.0.2"]
                  [fipp "0.6.12"]
                  [funcool/cuerdas "2.0.5"]
+                 [clojure.java-time "0.3.1"]
                  [aero "1.1.2"]
                  [io.aviso/pretty "0.1.34"]
                  [com.datomic/datomic-pro "0.9.5656"]

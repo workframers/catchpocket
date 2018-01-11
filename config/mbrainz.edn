@@ -1,4 +1,67 @@
-;; Sample config file for catchpocket
+;; Sample config file for catchpocket running against the mbrainz sample database.
+;; See https://github.com/Datomic/mbrainz-sample
 {
+ ;; Basic settings
  :catchpocket/datomic-uri "datomic:dev://localhost:4334/mbrainz-1968-1973"
- :catchpocket/output-dir  "target/catchpocket"}
+ :catchpocket/schema-file "target/mbrainz/schema.edn"
+
+ ;; Schema-generation settings
+ :catchpocket/references  {:abstractRelease/artists
+                           {:catchpocket/reference-to :artist}
+                           :artist/country
+                           {:catchpocket/reference-to :country}
+                           :label/country
+                           {:catchpocket/reference-to :country}
+                           :medium/tracks
+                           {:catchpocket/reference-to :track}
+                           :release/abstractRelease
+                           {:catchpocket/reference-to :abstractRelease}
+                           :release/artists
+                           {:catchpocket/reference-to :artist}
+                           :release/country
+                           {:catchpocket/reference-to :country}
+                           :release/labels
+                           {:catchpocket/reference-to :label}
+                           :release/language
+                           {:catchpocket/reference-to :language}
+                           :release/media
+                           {:catchpocket/reference-to :medium}
+                           :release/script
+                           {:catchpocket/reference-to :script}
+                           :track/artists
+                           {:catchpocket/reference-to :artist}}
+
+ ;; Enums
+ :catchpocket/enums       {:artist/type
+                           {:values #{:artist.type/person
+                                      :artist.type/other
+                                      :artist.type/group}}
+                           :artist/gender
+                           {:values #{:artist.gender/male
+                                      :artist.gender/female
+                                      :artist.gender/other}}
+                           :label/type
+                           {:values #{:label.type/distributor
+                                      :label.type/holding
+                                      :label.type/production
+                                      :label.type/originalProduction
+                                      :label.type/bootlegProduction
+                                      :label.type/reissueProduction
+                                      :label.type/publisher}}
+                           :release/packaging
+                           {:values #{:release.packaging/jewelCase
+                                      :release.packaging/slimJewelCase
+                                      :release.packaging/digipak
+                                      :release.packaging/other
+                                      :release.packaging/keepCase
+                                      :release.packaging/none
+                                      :release.packaging/cardboardPaperSleeve}}
+                           :abstractRelease/type
+                           {:values #{:release.type/album
+                                      :release.type/single
+                                      :release.type/ep
+                                      :release.type/audiobook
+                                      or :release.type/other}}}
+
+ ;; Stillsuit settings
+ :stillsuit/compile?      true}

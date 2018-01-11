@@ -1,12 +1,17 @@
 (ns catchpocket.generate.datomic
   (:require [datomic.api :as d]
             [clojure.string :as string]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [cuerdas.core :as str]))
 
 (defn tdb []
   (-> "datomic:dev://localhost:4334/workframe"
       d/connect
       d/db))
+
+;; TODO: move this into stillsuit, integrate
+(defn namespace-to-type [kw]
+  (-> kw str/camel str/capitalize keyword))
 
 (defn attr-list [db]
   (d/q '[;:find ?ident ?cardinality
@@ -18,6 +23,7 @@
          [(namespace ?ident) ?ns]
          [(datomic.api/attribute $ ?a) ?attr]
          (not [(re-find #"deprecated" ?ns)])
+         (not [(re-find #"fressian" ?ns)])
          (not [(re-find #"^db" ?ns)])]
        db))
 
@@ -28,7 +34,7 @@
    (let [xform (if capitalize? string/capitalize identity)
          join  (if capitalize? "" "_")]
      (->> (-> id
-              name
+              str/kebab
               (string/split #"[^A-Za-z0-9]+"))
           (remove string/blank?)
           (map xform)
@@ -41,7 +47,6 @@
       note
       (str docstring "\n\n" note))))
 
-
 (defn attr-info [attr doc]
   {:attribute/lacinia-name (attr-name (:ident attr))
    :attribute/ident        (:ident attr)
@@ -53,10 +58,8 @@
 
 
 (defn add-attr [accum [ns attrs doc]]
-  (if (= ns "fressian")
-    accum
-    (update accum (attr-name ns true)
-            #((fnil conj #{}) % (attr-info attrs doc)))))
+  (update accum (attr-name ns true)
+          #((fnil conj #{}) % (attr-info attrs doc))))
 
 (defn scan [db options]
   (log/info "Scanning datomic attributes...")
