@@ -2,7 +2,7 @@
   (:require [datomic.api :as d]
             [catchpocket.generate.datomic :as datomic]
             [puget.printer :as puget]
-            [taoensso.timbre :as log]
+            [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [fipp.edn :as fipp]
             [clojure.edn :as edn]

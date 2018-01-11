@@ -1,8 +1,7 @@
 (ns catchpocket.main
   (:require [catchpocket.generate.core :as g]
-            [catchpocket.logging :as logging]
             [clojure.tools.cli :as cli]
-            [taoensso.timbre :as log]
+            [clojure.tools.logging :as log]
             [clojure.string :as string]))
 
 (def cli-options
@@ -51,7 +50,6 @@
 
 (defn -main [& args]
   (let [{:keys [::action ::options ::exit-message ::ok? ::datomic-uri]} (validate-args args)]
-    (logging/config-logging! options)
     (when exit-message
       (exit! (if ok? 0 1) exit-message))
     (try
