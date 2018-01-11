@@ -41,23 +41,37 @@
           (string/join join)
           keyword))))
 
-(defn annotate-docs [attr docstring]
-  (let [note (format "> *datomic attribute: `%s`*" (:ident attr))]
-    (if (string/blank? docstring)
+(defn annotate-docs [attr-map]
+  (let [info (keep identity [(when (:attribute/unique attr-map) "unique")
+                             (when (:attribute/component? attr-map) "is-component")])
+        note (format "> datomic attribute: `%s`. Type `%s`%s."
+                     (:attribute/ident attr-map)
+                     (:attribute/field-type attr-map)
+                     (if (empty? info)
+                       ""
+                       (str ", " (string/join ", " info))))]
+    (if (string/blank? (:attribute/raw-doc attr-map))
       note
-      (str docstring "\n\n" note))))
+      (str (:attribute/raw-doc attr-map) "\n\n" note))))
 
-(defn attr-info [attr doc]
-  {:attribute/lacinia-name (attr-name (:ident attr))
-   :attribute/ident        (:ident attr)
-   :attribute/field-type   (:value-type attr)
-   :attribute/cardinality  (:cardinality attr)
-   :attribute/doc          (annotate-docs attr doc)
-   :attribute/unique       (:unique attr)
-   :attribute/component?   (:is-component attr)})
+(defn attr-info
+  "Get metadata about a datomic attribute. Note that this operates on the result of a
+  (d/attribute) call."
+  [attr doc]
+  (let [base {:attribute/lacinia-name (attr-name (:ident attr))
+              :attribute/ident        (:ident attr)
+              :attribute/field-type   (:value-type attr)
+              :attribute/cardinality  (:cardinality attr)
+              :attribute/unique       (:unique attr)
+              :attribute/raw-doc      doc
+              :attribute/indexed      (:indexed attr)
+              :attribute/fulltext?    (:fulltext attr)
+              :attribute/component?   (:is-component attr)}]
+    (assoc base :attribute/doc (annotate-docs base))))
 
 
 (defn add-attr [accum [ns attrs doc]]
+  ;(log/spy attrs)
   (update accum (attr-name ns true)
           #((fnil conj #{}) % (attr-info attrs doc))))
 

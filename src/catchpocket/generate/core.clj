@@ -1,6 +1,7 @@
 (ns catchpocket.generate.core
   (:require [datomic.api :as d]
             [catchpocket.generate.datomic :as datomic]
+            [catchpocket.generate.queries :as queries]
             [puget.printer :as puget]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
@@ -109,7 +110,8 @@
         db       (d/db conn)
         base-edn (util/load-edn (io/resource "catchpocket/lacinia-base.edn"))
         ent-map  (datomic/scan db config)
-        schema   (generate-edn base-edn ent-map config)]
+        objects  (generate-edn base-edn ent-map config)
+        schema   (queries/attach-queries objects ent-map config)]
     (write-file! schema config)
     (when (:debug config)
       (puget/pprint schema {:print-color (some? (System/console))})))
