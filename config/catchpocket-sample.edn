@@ -1,4 +1,0 @@
-;; Sample config file for catchpocket
-{
- :catchpocket/options
- {:option/color true}}

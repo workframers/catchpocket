@@ -6,14 +6,8 @@
             [clojure.java.io :as io]
             [fipp.edn :as fipp]
             [clojure.edn :as edn]
-            [clojure.string :as string]))
-
-(defn read-edn [name]
-  (some-> name
-          io/resource
-          io/reader
-          java.io.PushbackReader.
-          edn/read))
+            [clojure.string :as string]
+            [catchpocket.lib.util :as util]))
 
 (def datomic-to-lacinia
   {:db.type/keyword ::keyword
@@ -91,20 +85,20 @@
   (-> base
       (assoc :objects (create-objects ent-map))))
 
-(defn write-file! [schema options]
-  (let [filename (str (:output-dir options) "/catchpocket.edn")]
+(defn write-file! [schema config]
+  (let [filename (str (:catchpocket/output-dir config) "/catchpocket.edn")]
     (io/make-parents filename)
     (spit filename (with-out-str (fipp/pprint schema)))
     (log/infof "Saved schema to %s" filename)))
 
-(defn generate [datomic-uri options]
+(defn generate [{:keys [:catchpocket/datomic-uri] :as config}]
   (log/infof "Connecting to %s..." datomic-uri)
   (let [conn     (d/connect datomic-uri)
         db       (d/db conn)
-        base-edn (read-edn "lacinia-base.edn")
-        ent-map  (datomic/scan db options)
+        base-edn (util/load-edn (io/resource "catchpocket/lacinia-base.edn"))
+        ent-map  (datomic/scan db config)
         schema   (generate-edn base-edn ent-map)]
-    (write-file! schema options)
-    (when (:debug options)
+    (write-file! schema config)
+    (when (:debug config)
       (puget/pprint schema {:print-color (some? (System/console))})))
   (log/info "Finished generation."))

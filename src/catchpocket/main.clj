@@ -1,5 +1,6 @@
 (ns catchpocket.main
-  (:require [catchpocket.generate.core :as g]
+  (:require [catchpocket.lib.config :as cf]
+            [catchpocket.generate.core :as g]
             [clojure.tools.cli :as cli]
             [clojure.tools.logging :as log]
             [clojure.string :as string]))
@@ -12,7 +13,7 @@
     :default "target/catchpocket"]])
 
 (defn usage [options-summary]
-  (->> ["Usage: lein catchpocket [options] ACTION DATOMIC-URI"
+  (->> ["Usage: lein catchpocket [options] CONFIG-FILE ACTION"
         ""
         "Options:"
         options-summary
@@ -36,27 +37,33 @@
       {::exit-message (error-msg errors)}
 
       (and (= 2 (count arguments))
-           (#{"generate"} (first arguments)))
-      {::action      (-> arguments first keyword)
+           (#{"generate"} (second arguments)))
+      {::action      (-> arguments second keyword)
        ::options     options
-       ::datomic-uri (second arguments)}
+       ::config-file (first arguments)}
 
       :else                                                 ; failed custom validation => exit with usage summary
       {::exit-message (usage summary)})))
 
-(defn exit! [status msg]
-  (println msg)
-  (System/exit status))
+(defn exit!
+  ([status]
+   (exit! status nil))
+  ([status msg]
+   (when msg
+     (log/error msg))
+   (System/exit status)))
 
 (defn -main [& args]
-  (let [{:keys [::action ::options ::exit-message ::ok? ::datomic-uri]} (validate-args args)]
+  (let [{:keys [::action ::options ::exit-message ::ok? ::config-file]} (validate-args args)]
     (when exit-message
       (exit! (if ok? 0 1) exit-message))
     (try
-      (case action
-        :generate (g/generate datomic-uri options)
-        (exit! 1 (format "Unknown action %s!" action)))
+      (let [config (cf/construct-config config-file options)]
+        (case action
+          :generate (g/generate config)
+          (exit! 1 (format "Unknown action %s!" action))))
       (catch Exception e
-        (log/errorf e "Exception caught during %s: %s" (name action) (.getMessage e))
+        (when-not (-> e ex-data :die?)
+          (log/errorf e "Exception caught during %s: %s" (name action) (.getMessage e)))
         (exit! 1 (.getMessage e))))
     (System/exit 0)))

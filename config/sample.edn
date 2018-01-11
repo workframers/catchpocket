@@ -1,0 +1,4 @@
+;; Sample config file for catchpocket
+{
+ :catchpocket/datomic-uri "datomic:dev://localhost:4334/mbrainz-1968-1973"
+ :catchpocket/output-dir  "target/catchpocket"}

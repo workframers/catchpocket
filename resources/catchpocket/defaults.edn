@@ -1,0 +1,2 @@
+;; This is the base catchpocket file, which can be overridden by the one specified on the command-line
+{}
