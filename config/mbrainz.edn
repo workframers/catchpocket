@@ -61,7 +61,8 @@
                                       :release.type/single
                                       :release.type/ep
                                       :release.type/audiobook
-                                      or :release.type/other}}}
+                                      :release.type/other}}}
 
  ;; Stillsuit settings
  :stillsuit/compile?      true}
+ ;:stillsuit/trace? true}

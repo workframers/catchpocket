@@ -19,16 +19,16 @@
       keyword))
 
 (defn- query-definition
-  [lacinia-type {:keys [:attribute/lacinia-name] :as attr-info} config]
+  [lacinia-type {:attribute/keys [lacinia-name ident] :as attr-info} config]
   (let []
     {:type        lacinia-type
-     :args        {lacinia-name {:type '(non-null ID)
-                                 :description "The unique ID"}}}))
-     ;:resolve     (resolvers/resolve-entity-by-unique-attribute )
-     ;:description "Return the current time."}))
+     :args        {lacinia-name {:type        '(non-null ID)
+                                 :description (format "The `%s` value of the entity to find" ident)}}
+     :resolve     [:stillsuit-resolve-by-unique-id lacinia-type attr-info]
+     :description (format "Find a single %s entity given its `%s` attribute." lacinia-type ident)}))
 
 (defn- make-query-for
-  [lacinia-type {:keys [:attribute/lacinia-name] :as attr-info} config]
+  [lacinia-type {:attribute/keys [lacinia-name] :as attr-info} config]
   (let [qname (make-query-name lacinia-type lacinia-name config)]
     [qname (query-definition lacinia-type attr-info config)]))
 
@@ -40,4 +40,5 @@
                        (make-query-for lacinia-type attr-info config))
                      (into {}))]
     (log/spy queries)
-    schema))
+    (log/spy (update schema :queries merge queries))
+    (update schema :queries merge queries)))

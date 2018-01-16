@@ -77,6 +77,13 @@
          [lacinia-name field-def])
        (into {})))
 
+;(defn make-backrefs
+;  [object field-defs config]
+;  (for [{:keys [:attribute/lacinia-name] :as field} field-defs
+;        :let [field-def (make-single-field field config)]
+;        :when field-def]
+;    [lacinia-name field-def]))
+
 (defn make-object [object field-defs config]
   (log/debugf "Found entity type %s" object)
   {:description (format "Entity containing fields with the namespace `%s`"
@@ -85,18 +92,30 @@
    :fields      (-> field-defs
                     (make-fields config)
                     (assoc-db-id config))})
+   ;::backrefs   (make-backrefs object field-defs config)})
 
-(defn create-objects [ent-map config]
+;(defn- create-single-backref
+;  [config objects reference]
+;  objects)
+;
+;
+;(defn create-backrefs [objects ent-map config]
+;  (let [refs ()]
+;    (reduce (partial create-single-backref config) objects refs)))
+;
+(defn create-objects
+  [ent-map config]
   (->> (for [[object field-defs] ent-map]
          [object (make-object object field-defs config)])
        (into {})))
-
+        ;backref (create-backrefs objects ent-map config))))
 
 (defn generate-edn [base ent-map config]
   (log/infof "Generating lacinia schema for %d entity types..." (count ent-map))
-  (-> base
-      (assoc :objects (create-objects ent-map config))
-      (assoc :catchpocket/generated-at (util/timestamp))))
+  (assoc base
+    :objects (create-objects ent-map config)
+    :catchpocket/generated-at (util/timestamp)
+    :catchpocket/version (:catchpocket/version config)))
 
 (defn write-file! [schema config]
   (let [filename (:catchpocket/schema-file config)]
