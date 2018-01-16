@@ -17,7 +17,7 @@
                             :catchpocket/backref-name :labels}
                            :medium/tracks
                            {:catchpocket/reference-to :track
-                            :catchpocket/backref-name :tracks}
+                            :catchpocket/backref-name :media}
                            :release/abstractRelease
                            {:catchpocket/reference-to :abstractRelease
                             :catchpocket/backref-name :releases}
