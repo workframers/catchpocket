@@ -7,29 +7,41 @@
 
  ;; Schema-generation settings
  :catchpocket/references  {:abstractRelease/artists
-                           {:catchpocket/reference-to :artist}
+                           {:catchpocket/reference-to :artist
+                            :catchpocket/backref-name :abstractReleases}
                            :artist/country
-                           {:catchpocket/reference-to :country}
+                           {:catchpocket/reference-to :country
+                            :catchpocket/backref-name :artists}
                            :label/country
-                           {:catchpocket/reference-to :country}
+                           {:catchpocket/reference-to :country
+                            :catchpocket/backref-name :labels}
                            :medium/tracks
-                           {:catchpocket/reference-to :track}
+                           {:catchpocket/reference-to :track
+                            :catchpocket/backref-name :tracks}
                            :release/abstractRelease
-                           {:catchpocket/reference-to :abstractRelease}
+                           {:catchpocket/reference-to :abstractRelease
+                            :catchpocket/backref-name :releases}
                            :release/artists
-                           {:catchpocket/reference-to :artist}
+                           {:catchpocket/reference-to :artist
+                            :catchpocket/backref-name :releases}
                            :release/country
-                           {:catchpocket/reference-to :country}
+                           {:catchpocket/reference-to :country
+                            :catchpocket/backref-name :releases}
                            :release/labels
-                           {:catchpocket/reference-to :label}
+                           {:catchpocket/reference-to :label
+                            :catchpocket/backref-name :releases}
                            :release/language
-                           {:catchpocket/reference-to :language}
+                           {:catchpocket/reference-to :language
+                            :catchpocket/backref-name :releases}
                            :release/media
-                           {:catchpocket/reference-to :medium}
+                           {:catchpocket/reference-to :medium
+                            :catchpocket/backref-name :releases}
                            :release/script
-                           {:catchpocket/reference-to :script}
+                           {:catchpocket/reference-to :script
+                            :catchpocket/backref-name :releases}
                            :track/artists
-                           {:catchpocket/reference-to :artist}}
+                           {:catchpocket/reference-to :artist
+                            :catchpocket/backref-name :tracks}}
 
  ;; Enums
  :catchpocket/enums       {:artist/type

@@ -26,14 +26,14 @@
    :db.type/uri     'String
    :db.type/bytes   'String})
 
-(defn get-ref-type [field {:keys [:catchpocket/references :stillsuit/datomic-entity-type] :as config}]
-  (if-let [override (get references field)]
-    (let [override-type (-> override :catchpocket/reference-to datomic/namespace-to-type)]
-      (log/tracef "Using type %s as referent for field %s" override-type field)
+(defn get-ref-type [field {:keys [:stillsuit/datomic-entity-type] :as config}]
+  (if-let [override-type (-> field :catchpocket/reference-to datomic/namespace-to-type)]
+    (do
+      (log/tracef "Using type %s as referent for field %s" override-type (:attribute/ident field))
       override-type)
     ;; Else no entity found
     (do
-      (log/warnf "No reference type found for field %s, using %s" field datomic-entity-type)
+      (log/warnf "No reference type found for field %s, using %s" (:attribute/ident field) datomic-entity-type)
       datomic-entity-type)))
 
 (defn get-field-type [field config]
@@ -48,7 +48,7 @@
       lacinia-type
 
       (= lacinia-type ::ref)
-      (get-ref-type (:attribute/ident field) config)
+      (get-ref-type field config)
 
       :else
       (log/warnf "Skipping unknown field %s with type %s."
@@ -77,12 +77,15 @@
          [lacinia-name field-def])
        (into {})))
 
-;(defn make-backrefs
-;  [object field-defs config]
-;  (for [{:keys [:attribute/lacinia-name] :as field} field-defs
-;        :let [field-def (make-single-field field config)]
-;        :when field-def]
-;    [lacinia-name field-def]))
+(defn find-backrefs
+  [objects config]
+  (for [[lacinia-type {:keys [fields]}] objects
+        [field-name field-info] fields
+        :let [field-type (:type field-info)]
+        :when (and (keyword? field-type)
+                   (not= field-type (:stillsuit/db-id-name config))
+                   (not= field-type :DatomicEntity))]
+    [lacinia-type field-name field-type]))
 
 (defn make-object [object field-defs config]
   (log/debugf "Found entity type %s" object)
@@ -92,7 +95,7 @@
    :fields      (-> field-defs
                     (make-fields config)
                     (assoc-db-id config))})
-   ;::backrefs   (make-backrefs object field-defs config)})
+;::backrefs   (make-backrefs object field-defs config)})
 
 ;(defn- create-single-backref
 ;  [config objects reference]
@@ -108,14 +111,40 @@
   (->> (for [[object field-defs] ent-map]
          [object (make-object object field-defs config)])
        (into {})))
-        ;backref (create-backrefs objects ent-map config))))
+;backref (create-backrefs objects ent-map config))))
+
+(defn find-backrefs
+  "Given an entity map, scan it looking for datomic back-references. Return a seq of tuples
+  [from-type field-name to-type datomic-attribute]."
+  [ent-map config]
+  (for [[to-type field-defs] ent-map
+        field-def field-defs
+        :let [backref (:catchpocket/backref-name field-def)]
+        :when backref
+        :let [from-type   (-> field-def :catchpocket/reference-to datomic/namespace-to-type)
+              ident       (:attribute/ident field-def)
+              datomic-ref (keyword (format "%s/_%s" (namespace ident) (name ident)))]]
+    [from-type backref to-type datomic-ref]))
+
+(defn- add-backref
+  [config objects [from-type backref to-type datomic-ref]]
+  (log/tracef "Generating back-reference %s from type %s to type %s for attribute %s"
+              backref from-type to-type datomic-ref)
+  (assoc-in objects [from-type :fields backref]
+            {:type        (list 'list (list 'non-null to-type))
+             :description (format "Back-reference for the `%s` datomic attribute" datomic-ref)}))
 
 (defn generate-edn [base ent-map config]
   (log/infof "Generating lacinia schema for %d entity types..." (count ent-map))
-  (assoc base
-    :objects (create-objects ent-map config)
-    :catchpocket/generated-at (util/timestamp)
-    :catchpocket/version (:catchpocket/version config)))
+  (let [objects   (create-objects ent-map config)
+        backrefs  (find-backrefs ent-map config)
+        decorated (reduce (partial add-backref config) objects backrefs)]
+    ;(log/spy backrefs)
+    ;(log/spy ent-map)
+    (assoc base
+      :objects decorated
+      :catchpocket/generated-at (util/timestamp)
+      :catchpocket/version (:catchpocket/version config))))
 
 (defn write-file! [schema config]
   (let [filename (:catchpocket/schema-file config)]
@@ -132,6 +161,6 @@
         objects  (generate-edn base-edn ent-map config)
         schema   (queries/attach-queries objects ent-map config)]
     (write-file! schema config)
-    (when (:debug config)
-      (puget/pprint schema {:print-color (some? (System/console))})))
+    (when (:debug config)))
+  ;(puget/pprint schema {:print-color (some? (System/console))})))
   (log/info "Finished generation."))

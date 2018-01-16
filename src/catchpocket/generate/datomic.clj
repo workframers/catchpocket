@@ -56,28 +56,33 @@
 
 (defn attr-info
   "Get metadata about a datomic attribute. Note that this operates on the result of a
-  (d/attribute) call."
-  [attr doc]
-  (let [base {:attribute/lacinia-name (attr-name (:ident attr))
-              :attribute/ident        (:ident attr)
-              :attribute/field-type   (:value-type attr)
-              :attribute/cardinality  (:cardinality attr)
-              :attribute/unique       (:unique attr)
-              :attribute/raw-doc      doc
-              :attribute/indexed      (:indexed attr)
-              :attribute/fulltext?    (:fulltext attr)
-              :attribute/component?   (:is-component attr)}]
-    (assoc base :attribute/doc (annotate-docs base))))
+  (d/attribute) call. This function also merges in any part of the :catchpocket/references
+  bit of the config that is named after this datomic attribute."
+  [attr doc {:keys [:catchpocket/references]}]
+  (let [ident   (:ident attr)
+        from-cf (get references ident)
+        base    {:attribute/lacinia-name (attr-name ident)
+                 :attribute/ident        ident
+                 :attribute/field-type   (:value-type attr)
+                 :attribute/cardinality  (:cardinality attr)
+                 :attribute/unique       (:unique attr)
+                 :attribute/raw-doc      doc
+                 :attribute/indexed      (:indexed attr)
+                 :attribute/fulltext?    (:fulltext attr)
+                 :attribute/component?   (:is-component attr)}]
+    (merge base
+           from-cf
+           {:attribute/doc (annotate-docs base)})))
 
-
-(defn add-attr [accum [ns attrs doc]]
+;; TODO: make-sensical
+(defn add-attr [config accum [ns attrs doc]]
   (update accum (attr-name ns true)
-          #((fnil conj #{}) % (attr-info attrs doc))))
+          #((fnil conj #{}) % (attr-info attrs doc config))))
 
 (defn scan
   "Produce an entity map - a map of lacinia type names to a set of attribute maps,
   where each attribute map corresponds to one datomic attribute as returned by (attr-info)."
-  [db options]
+  [db config]
   (log/info "Scanning datomic attributes...")
   (let [attrs (attr-list db)]
-    (reduce add-attr {} attrs)))
+    (reduce (partial add-attr config) {} attrs)))

@@ -39,6 +39,4 @@
                            :when (:attribute/unique attr-info)]
                        (make-query-for lacinia-type attr-info config))
                      (into {}))]
-    (log/spy queries)
-    (log/spy (update schema :queries merge queries))
     (update schema :queries merge queries)))
