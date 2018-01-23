@@ -66,7 +66,9 @@
     (when lacinia-type
       (merge
        {:type    full-type
-        :resolve [:stillsuit.entity-attribute (:attribute/ident field) lacinia-type]}
+        :resolve [:stillsuit/ref
+                  #:stillsuit{:attribute    (:attribute/ident field)
+                              :lacinia-type lacinia-type}]}
        (when doc
          {:description doc})))))
 
@@ -139,7 +141,10 @@
                 backref from-type plural-type datomic-ref)
     (assoc-in objects [from-type :fields backref]
               {:type        plural-type
-               :resolve     [:stillsuit.entity-attribute datomic-ref plural-type]
+               :resolve     [:stillsuit/ref
+                             #:stillsuit{:attribute    datomic-ref
+                                         :lacinia-type plural-type}]
+
                :description (format "Back-reference for the `%s` datomic attribute" datomic-ref)})))
 
 (defn generate-edn [base ent-map config]
@@ -168,5 +173,4 @@
         schema   (queries/attach-queries objects ent-map config)]
     (write-file! schema config)
     (when (:debug config)))
-  ;(puget/pprint schema {:print-color (some? (System/console))})))
   (log/info "Finished generation."))
