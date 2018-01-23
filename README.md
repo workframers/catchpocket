@@ -1,6 +1,8 @@
 catchpocket is a tool to automatically generate
 [lacinia](https://github.com/walmartlabs/lacinia) schema information
-from a [datomic](http://www.datomic.com/) database.
+from a [datomic](http://www.datomic.com/) database. The schemas it
+generates work with the [stillsuit](https://github.com/workframers/stillsuit)
+library at runtime to resolve GraphQL queries against the database.
 
 ## Setup
 
@@ -27,6 +29,10 @@ project for some instructions on quickly setting up graphiql for a datomic datab
 catchpocket inspects a datomic database and gets metadata about its attributes;
 it then inspects its data to do a bit of inference about how to map entity data
 to lacinia schema information. It then generates a lacinia schema configuration.
+At runtime, the schema can be used with the `stillsuit` library to execute
+queries against the database.
+
+![Overview diagram](docs/overview.png?raw=true "Overview")
 
 catchpocket works by making a bunch of assumptions about the way your data
 is set up that may not be true (and are conventions datomic doesn't enforce):
@@ -69,3 +75,13 @@ cool stuff. Where catchpocket is database-first, umlaut is document-first.
 
 In Frank Herbert's _Dune_ novels, a catchpocket is a place where precious water
 is stored.
+
+
+### TODO:
+- Security / predicates on attributes
+- Skip attributes
+- Inference
+- Enums
+- Inject session (/logged-in user) API
+- Diagram
+- lein plugin / boot task / etc

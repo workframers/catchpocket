@@ -1,0 +1,72 @@
+@startuml
+title Catchpocket Operation
+database Datomic {
+}
+
+package Generation {
+
+  file CatchpocketConfig [
+    **""catchpocket.edn""**
+    ....
+    ""{:catchpocket/datomic-uri ""
+    ""  "datomic:dev://..." ""
+    "" :catchpocket/schema-file ""
+    ""  "target/stillsuit.edn"}""
+  ]
+
+  rectangle Catchpocket [
+    **Catchpocket CLI**
+    ....
+    ""lein generate""\n""catchpocket.edn""
+  ]
+  file StillsuitConfig [
+    **""stillsuit.edn""**
+    ....
+    ""{:objects ""
+    "" {:MyDatomicEntity""
+    ""  {:fields {...}}}}""
+  ]
+
+}
+
+package Runtime {
+  component Stillsuit [
+    **Stillsuit Library**
+    ....
+    ""(def compiled-schema ""
+    ""  (stillsuit/decorate""
+    ""   (load-edn "stillsuit.edn")))""
+
+    ""(def app-context""
+    ""  (stillsuit/app-context""
+    ""   "datomic:dev://..."))""
+  ]
+
+  component Lacinia [
+    **Lacinia Library**
+    ....
+    ""(lacinia/execute""
+    "" compiled-schema""
+    "" query ""
+    "" app-context)""
+  ]
+
+  node Application
+  actor User
+}
+
+Datomic --> Stillsuit : runtime\nresolution
+CatchpocketConfig --> Catchpocket
+
+Lacinia -> Stillsuit
+Application -> Lacinia
+
+Datomic --> Catchpocket : schema\ngeneration
+StillsuitConfig --> Stillsuit
+
+Catchpocket -> StillsuitConfig
+
+User -> Application : GraphQL\nQuery
+
+
+@enduml
