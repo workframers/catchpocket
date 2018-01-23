@@ -1,11 +1,23 @@
 @startuml
 title Catchpocket Operation
-database Datomic {
-}
 
-package Generation {
+database Datomic #ivory [
+  **Datomic**
+  ....
 
-  file CatchpocketConfig [
+  "" {:my-thing/attr ""
+  ""  ...}""
+
+]
+
+package "Schema Generation" {
+  node Catchpocket #lavenderblush [
+    **Catchpocket CLI**
+    ....
+    ""lein generate""\n""catchpocket.edn""
+  ]
+
+  file CatchpocketConfig #azure [
     **""catchpocket.edn""**
     ....
     ""{:catchpocket/datomic-uri ""
@@ -14,23 +26,19 @@ package Generation {
     ""  "target/stillsuit.edn"}""
   ]
 
-  rectangle Catchpocket [
-    **Catchpocket CLI**
-    ....
-    ""lein generate""\n""catchpocket.edn""
-  ]
-  file StillsuitConfig [
+  file StillsuitConfig #ivory [
     **""stillsuit.edn""**
     ....
     ""{:objects ""
-    "" {:MyDatomicEntity""
-    ""  {:fields {...}}}}""
+    "" {:MyThing""
+    ""  {:fields ""
+    ""   {:attr {...}}}}""
   ]
 
 }
 
-package Runtime {
-  component Stillsuit [
+package "Runtime Execution" {
+  component Stillsuit #ivory [
     **Stillsuit Library**
     ....
     ""(def compiled-schema ""
@@ -51,7 +59,7 @@ package Runtime {
     "" app-context)""
   ]
 
-  node Application
+  node Application #lavenderblush
   actor User
 }
 

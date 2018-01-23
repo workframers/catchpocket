@@ -19,10 +19,11 @@ catchpocket depends on the datomic libraries being installed locally. To do so:
 lein run generate datomic:dev://localhost:4334/my-db-name
 ```
 
-### Testing
+### Testing it out
 
 See the [stillsuit-sample](https://github.com/workframers/stillsuit-sample)
-project for some instructions on quickly setting up graphiql for a datomic database.
+project for some instructions on quickly setting up `graphiql` for a datomic
+database.
 
 ## How does it work?
 
@@ -85,3 +86,4 @@ is stored.
 - Inject session (/logged-in user) API
 - Diagram
 - lein plugin / boot task / etc
+- Ref config via attribute metadata
