@@ -11,7 +11,7 @@
 
 ;; TODO: move this into stillsuit, integrate
 (defn namespace-to-type [kw]
-  (-> kw str/camel str/capitalize keyword))
+  (-> kw str/camel str/capital keyword))
 
 (defn attr-list [db]
   (d/q '[;:find ?ident ?cardinality

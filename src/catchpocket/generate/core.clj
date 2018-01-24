@@ -83,16 +83,6 @@
          [lacinia-name field-def])
        (into {})))
 
-(defn find-backrefs
-  [objects config]
-  (for [[lacinia-type {:keys [fields]}] objects
-        [field-name field-info] fields
-        :let [field-type (:type field-info)]
-        :when (and (keyword? field-type)
-                   (not= field-type (:stillsuit/db-id-name config))
-                   (not= field-type :DatomicEntity))]
-    [lacinia-type field-name field-type]))
-
 (defn make-object [object field-defs config]
   (log/debugf "Found entity type %s" object)
   {:description (format "Entity containing fields with the namespace `%s`"
@@ -101,23 +91,12 @@
    :fields      (-> field-defs
                     (make-fields config)
                     (assoc-db-id config))})
-;::backrefs   (make-backrefs object field-defs config)})
 
-;(defn- create-single-backref
-;  [config objects reference]
-;  objects)
-;
-;
-;(defn create-backrefs [objects ent-map config]
-;  (let [refs ()]
-;    (reduce (partial create-single-backref config) objects refs)))
-;
 (defn create-objects
   [ent-map config]
   (->> (for [[object field-defs] ent-map]
          [object (make-object object field-defs config)])
        (into {})))
-;backref (create-backrefs objects ent-map config))))
 
 (defn find-backrefs
   "Given an entity map, scan it looking for datomic back-references. Return a seq of tuples
@@ -171,6 +150,5 @@
         ent-map  (datomic/scan db config)
         objects  (generate-edn base-edn ent-map config)
         schema   (queries/attach-queries objects ent-map config)]
-    (write-file! schema config)
-    (when (:debug config)))
+    (write-file! schema config))
   (log/info "Finished generation."))
