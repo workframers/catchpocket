@@ -25,7 +25,7 @@
 
   :main catchpocket.main
 
-  :plugins []
+  ;:plugins [[me.arrdem/lein-git-version "2.0.4"]]
 
   :repositories [["workframe-private" {:url "s3p://deployment.workframe.com/maven/releases/"
                                        :no-auth true}]]

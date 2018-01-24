@@ -1,0 +1,31 @@
+;; Sample config file for catchpocket running against the mbrainz sample database.
+;; See https://github.com/Datomic/mbrainz-sample
+{
+ ;; Basic settings
+ :catchpocket/datomic-uri "datomic:dev://localhost:4334/seattle"
+ :catchpocket/schema-file "target/seattle/stillsuit.edn"
+
+ ;; Schema-generation settings
+ :catchpocket/references
+ {:community/neighborhood
+  {:catchpocket/reference-to :neighborhood
+   :catchpocket/backref-name :community}
+  :neighborhood/district,
+  {:catchpocket/reference-to :district
+   :catchpocket/backref-name :neighborhood}}
+
+ ;; Enums
+ :catchpocket/enums
+ {:COMMUNITY_TYPE
+  {:catchpocket.enum/attributes  #{:community/type}
+   :catchpocket.enum/description "Community organization type"
+   :catchpocket.enum/scan?       true}
+  :ORG_TYPE
+  {:catchpocket.enum/attributes #{:community/orgtype}
+   :catchpocket.enum/scan?       true}
+  :REGIONS
+  {:catchpocket.enum/attributes #{:district/region}
+   :catchpocket.enum/scan?       true}}
+
+
+ :stillsuit/compile? true}

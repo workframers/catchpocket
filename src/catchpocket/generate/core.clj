@@ -2,14 +2,12 @@
   (:require [datomic.api :as d]
             [catchpocket.generate.datomic :as datomic]
             [catchpocket.generate.queries :as queries]
-            [puget.printer :as puget]
+            [catchpocket.generate.enums :as enums]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [fipp.edn :as fipp]
-            [clojure.edn :as edn]
-            [cuerdas.core :as str]
-            [clojure.string :as string]
-            [catchpocket.lib.util :as util]))
+            [catchpocket.lib.util :as util]
+            [clojure.string :as str]))
 
 (def datomic-to-lacinia
   {:db.type/keyword ::keyword
@@ -86,7 +84,7 @@
 (defn make-object [object field-defs config]
   (log/debugf "Found entity type %s" object)
   {:description (format "Entity containing fields with the namespace `%s`"
-                        (-> object str string/lower-case))
+                        (-> object str str/lower-case))
    :implements  [:DatomicEntity]
    :fields      (-> field-defs
                     (make-fields config)
@@ -126,7 +124,7 @@
 
                :description (format "Back-reference for the `%s` datomic attribute" datomic-ref)})))
 
-(defn generate-edn [base ent-map config]
+(defn generate-edn [base ent-map enums config]
   (log/infof "Generating lacinia schema for %d entity types..." (count ent-map))
   (let [objects   (create-objects ent-map config)
         backrefs  (find-backrefs ent-map config)
@@ -148,7 +146,8 @@
         db       (d/db conn)
         base-edn (util/load-edn (io/resource "catchpocket/lacinia-base.edn"))
         ent-map  (datomic/scan db config)
-        objects  (generate-edn base-edn ent-map config)
+        enums    (enums/generate-enums db ent-map config)
+        objects  (generate-edn base-edn ent-map enums config)
         schema   (queries/attach-queries objects ent-map config)]
     (write-file! schema config))
   (log/info "Finished generation."))

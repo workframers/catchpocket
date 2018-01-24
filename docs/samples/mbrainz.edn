@@ -3,7 +3,7 @@
 {
  ;; Basic settings
  :catchpocket/datomic-uri "datomic:dev://localhost:4334/mbrainz-1968-1973"
- :catchpocket/schema-file "target/mbrainz/schema.edn"
+ :catchpocket/schema-file "target/mbrainz/stillsuit.edn"
 
  ;; Schema-generation settings
  :catchpocket/references  {:abstractRelease/artists
