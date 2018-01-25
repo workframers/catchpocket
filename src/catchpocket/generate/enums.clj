@@ -76,8 +76,8 @@
   [enum-info leaf-type]
   (reduce (fn [acc [enum-type value lacinia-name]]
             (if (= leaf-type ::lacinia)
-              (assoc-in acc [enum-type value] lacinia-name)
-              (assoc-in acc [enum-type lacinia-name] value)))
+              (assoc-in acc [enum-type lacinia-name] value)
+              (assoc-in acc [enum-type value] lacinia-name)))
           {}
           (for [[enum-type {:keys [::values]}] enum-info
                 {:catchpocket.enum/keys [value lacinia-name]} values]
@@ -100,6 +100,6 @@
         datomic-map (datomic-lacinia-map enum-info ::datomic)]
     {:catchpocket.enums/lacinia-defs  enum-defs
      :catchpocket.enums/attribute-map (attribute-to-enum-type enum-info)
-     :stillsuit/enums                 {:stillsuit/lacinia-to-datomic lacinia-map
+     :stillsuit/enum-map              {:stillsuit/lacinia-to-datomic lacinia-map
                                        :stillsuit/datomic-to-lacinia datomic-map}}))
 

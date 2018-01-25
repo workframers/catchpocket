@@ -16,14 +16,14 @@
 
  ;; Enums
  :catchpocket/enums
- {:COMMUNITY_TYPE
+ {:community_type
   {:catchpocket.enum/attributes  #{:community/type}
    :catchpocket.enum/description "Community organization type"
    :catchpocket.enum/scan?       true}
-  :ORG_TYPE
+  :org_type
   {:catchpocket.enum/attributes #{:community/orgtype}
    :catchpocket.enum/scan?       true}
-  :REGIONS
+  :regions
   {:catchpocket.enum/attributes #{:district/region}
    :catchpocket.enum/scan?       true}}
 

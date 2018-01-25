@@ -63,37 +63,54 @@
                        lacinia-type)]
     (when lacinia-type
       (merge
-       {:type    full-type
-        :resolve [:stillsuit/ref
-                  #:stillsuit{:attribute    (:attribute/ident field)
-                              :lacinia-type lacinia-type}]}
-       (when doc
-         {:description doc})))))
+        {:type    full-type
+         :resolve [:stillsuit/ref
+                   #:stillsuit{:attribute    (:attribute/ident field)
+                               :lacinia-type lacinia-type}]}
+        (when doc
+          {:description doc})))))
+
+(defn make-enum-field [field enum-type enums config]
+  (let [{:attribute/keys [cardinality doc ident]} field
+        full-type (if (= cardinality :db.cardinality/many)
+                    (list 'list (list 'non-null enum-type))
+                    enum-type)]
+    (log/tracef "Using enum type %s for field %s" full-type ident)
+    (merge
+      {:type    full-type
+       :resolve [:stillsuit/enum
+                 #:stillsuit{:attribute    (:attribute/ident field)
+                             :lacinia-type enum-type}]}
+      (when doc
+        {:description doc}))))
 
 (defn assoc-db-id [field-def {:keys [:stillsuit/db-id-name]}]
   (assoc field-def db-id-name {:type        'ID
                                :description "Unique :db/id value for a datomic entity"}))
 
-(defn make-fields [field-defs config]
-  (->> (for [{:keys [:attribute/lacinia-name] :as field} field-defs
-             :let [field-def (make-single-field field config)]
+(defn make-fields [field-defs enums config]
+  (->> (for [{:keys [:attribute/lacinia-name :attribute/ident] :as field} field-defs
+             :let [enum-type (get-in enums [:catchpocket.enums/attribute-map ident])
+                   field-def (if enum-type
+                               (make-enum-field field enum-type enums config)
+                               (make-single-field field config))]
              :when field-def]
          [lacinia-name field-def])
        (into {})))
 
-(defn make-object [object field-defs config]
+(defn make-object [object enums field-defs config]
   (log/debugf "Found entity type %s" object)
   {:description (format "Entity containing fields with the namespace `%s`"
                         (-> object str str/lower-case))
    :implements  [:DatomicEntity]
    :fields      (-> field-defs
-                    (make-fields config)
+                    (make-fields enums config)
                     (assoc-db-id config))})
 
 (defn create-objects
-  [ent-map config]
+  [ent-map enums config]
   (->> (for [[object field-defs] ent-map]
-         [object (make-object object field-defs config)])
+         [object (make-object object enums field-defs config)])
        (into {})))
 
 (defn find-backrefs
@@ -124,13 +141,15 @@
 
                :description (format "Back-reference for the `%s` datomic attribute" datomic-ref)})))
 
-(defn generate-edn [base ent-map enums config]
+(defn generate-edn [base-schema ent-map enums config]
   (log/infof "Generating lacinia schema for %d entity types..." (count ent-map))
-  (let [objects   (create-objects ent-map config)
+  (let [objects   (create-objects ent-map enums config)
         backrefs  (find-backrefs ent-map config)
         decorated (reduce (partial add-backref config) objects backrefs)]
-    (assoc base
+    (assoc base-schema
       :objects decorated
+      :enums (:catchpocket.enums/lacinia-defs enums)
+      :stillsuit/enum-map (:stillsuit/enum-map enums)
       :catchpocket/generated-at (util/timestamp)
       :catchpocket/version (:catchpocket/version config))))
 
@@ -147,7 +166,6 @@
         base-edn (util/load-edn (io/resource "catchpocket/lacinia-base.edn"))
         ent-map  (datomic/scan db config)
         enums    (enums/generate-enums db ent-map config)
-        _ (log/spy enums)
         objects  (generate-edn base-edn ent-map enums config)
         schema   (queries/attach-queries objects ent-map config)]
     (write-file! schema config))
