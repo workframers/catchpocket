@@ -1,8 +1,9 @@
 (ns catchpocket.generate.datomic
   (:require [datomic.api :as d]
-            [clojure.string :as string]
             [clojure.tools.logging :as log]
-            [cuerdas.core :as str]))
+            [cuerdas.core :as str]
+            [clojure.set :as set]
+            [catchpocket.lib.util :as util]))
 
 (defn tdb []
   (-> "datomic:dev://localhost:4334/workframe"
@@ -11,7 +12,7 @@
 
 ;; TODO: move this into stillsuit, integrate
 (defn namespace-to-type [kw]
-  (-> kw str/camel str/capitalize keyword))
+  (-> kw str/camel str/capital keyword))
 
 (defn attr-list [db]
   (d/q '[;:find ?ident ?cardinality
@@ -31,14 +32,14 @@
   ([id]
    (attr-name id false))
   ([id capitalize?]
-   (let [xform (if capitalize? string/capitalize identity)
+   (let [xform (if capitalize? str/capital identity)
          join  (if capitalize? "" "_")]
      (->> (-> id
               str/kebab
-              (string/split #"[^A-Za-z0-9]+"))
-          (remove string/blank?)
+              (str/split #"[^A-Za-z0-9]+"))
+          (remove str/blank?)
           (map xform)
-          (string/join join)
+          (str/join join)
           keyword))))
 
 (defn annotate-docs [attr-map]
@@ -49,8 +50,8 @@
                      (:attribute/field-type attr-map)
                      (if (empty? info)
                        ""
-                       (str ", " (string/join ", " info))))]
-    (if (string/blank? (:attribute/raw-doc attr-map))
+                       (str ", " (str/join ", " info))))]
+    (if (str/blank? (:attribute/raw-doc attr-map))
       note
       (str (:attribute/raw-doc attr-map) "\n\n" note))))
 
@@ -86,3 +87,49 @@
   (log/info "Scanning datomic attributes...")
   (let [attrs (attr-list db)]
     (reduce (partial add-attr config) {} attrs)))
+
+(defn- scan-single-attribute
+  "Given an attribute in the db"
+  [db attribute]
+  (let [vals (d/q '[:find ?v ?attr-info
+                    :in $ ?attr
+                    :where
+                    [_ ?attr ?v]
+                    [(datomic.api/attribute $ ?v) ?attr-info]]
+                  db attribute)]
+    (->> (for [val vals
+               :let [doc (when (integer? val)
+                           (some->> val (d/entity db) :db/doc))]]
+           {::enum val ::desc doc ::attr attribute})
+         (into #{}))))
+
+(defn enum-scan
+  "Given a set of attributes, scan the database to produce the set of all of their values.
+  This function works for either :db/ident enum references or keywords.
+  Return a seq of {::value :foo/bar ::doc \"docstring\"} maps, where ::doc is the docstring
+  for enum references."
+  [db attributes]
+  (let [vals (d/q '[:find ?value ?doc
+                    :in $ [?attribute ...]
+                    :where
+                    [_ ?attribute ?v]
+                    (or-join [?v ?doc ?value]
+                             ;; Ident enum
+                             (and
+                              [(datomic.api/entid $ ?v) ?v-id]
+                              [?v-id :db/ident ?value]
+                              [(get-else $ ?v-id :db/doc :none) ?doc])
+                             (and
+                              [(keyword? ?v)]
+                              [(identity ?v) ?value]
+                              [(ground :none) ?doc]))]
+                  db attributes)]
+    (log/infof "Found %d possible enum values for attribute%s %s."
+               (count vals)
+               (if (> (count attributes) 1) "s" "")
+               (util/oxford attributes))
+    (for [[value doc] vals]
+      (merge
+        {:catchpocket.enum/value value}
+        (when (not= doc :none)
+          {:catchpocket.enum/doc   doc})))))

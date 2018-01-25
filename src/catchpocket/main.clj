@@ -33,7 +33,7 @@
       errors                                       ; errors => exit with description of errors
       {::exit-message (error-msg errors)}
 
-      (and (= 1 (count arguments)))
+      (= 1 (count arguments))
       {::action      ::generate
        ::options     options
        ::config-file (first arguments)}

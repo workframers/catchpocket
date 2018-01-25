@@ -2,7 +2,8 @@
   (:require [clojure.tools.logging :as log]
             [clojure.edn :as edn]
             [java-time :as jt]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [cuerdas.core :as str])
   (:import (java.io IOException PushbackReader)))
 
 (defn timestamp []
@@ -37,11 +38,11 @@
   -> {:a {:b {:z 3, :c 3, :d {:z 9, :x 1, :y 2}}, :e 103}, :f 4}"
   [f & maps]
   (apply
-    (fn m [& maps]
-      (if (every? #(or (map? %) (nil? %)) maps)
-        (apply merge-with m maps)
-        (apply f maps)))
-    maps))
+   (fn m [& maps]
+     (if (every? #(or (map? %) (nil? %)) maps)
+       (apply merge-with m maps)
+       (apply f maps)))
+   maps))
 
 (defn deep-map-merge
   "Recursively merge one or more maps, using the values of later maps to replace the
@@ -51,4 +52,22 @@
          (fn [& values]
            (last values))
          maps))
+
+(defn oxford
+  "Given a seq of strings, join them to insert into an English string as 'a, b, and c'."
+  [strs]
+  (let [[h t] (split-at (-> strs count dec) strs)
+        end (first t)
+        len (count h)]
+    (cond
+      (zero? len) (str end)
+      (= 1 len)   (str (first h) " and " end)
+      :else       (str (str/join ", " h) ", and " end))))
+
+(defn plural
+  "Return '' if the supplied seq has a single element, else 's'."
+  [strs]
+  (if (= (count strs) 1)
+    ""
+    "s"))
 

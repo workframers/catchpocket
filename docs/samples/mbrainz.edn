@@ -1,0 +1,68 @@
+;; Sample config file for catchpocket running against the mbrainz sample database.
+;; See https://github.com/Datomic/mbrainz-sample
+{
+ ;; Basic settings
+ :catchpocket/datomic-uri
+ "datomic:dev://localhost:4334/mbrainz-1968-1973"
+ :catchpocket/schema-file
+ "target/mbrainz/stillsuit.edn"
+
+ ;; Schema-generation settings
+ :catchpocket/references
+ {:abstractRelease/artists
+  {:catchpocket/reference-to :artist
+   :catchpocket/backref-name :abstractReleases}
+  :artist/country
+  {:catchpocket/reference-to :country
+   :catchpocket/backref-name :artists}
+  :label/country
+  {:catchpocket/reference-to :country
+   :catchpocket/backref-name :labels}
+  :medium/tracks
+  {:catchpocket/reference-to :track
+   :catchpocket/backref-name :media}
+  :release/abstractRelease
+  {:catchpocket/reference-to :abstractRelease
+   :catchpocket/backref-name :releases}
+  :release/artists
+  {:catchpocket/reference-to :artist
+   :catchpocket/backref-name :releases}
+  :release/country
+  {:catchpocket/reference-to :country
+   :catchpocket/backref-name :releases}
+  :release/labels
+  {:catchpocket/reference-to :label
+   :catchpocket/backref-name :releases}
+  :release/language
+  {:catchpocket/reference-to :language
+   :catchpocket/backref-name :releases}
+  :release/media
+  {:catchpocket/reference-to :medium
+   :catchpocket/backref-name :releases}
+  :release/script
+  {:catchpocket/reference-to :script
+   :catchpocket/backref-name :releases}
+  :track/artists
+  {:catchpocket/reference-to :artist
+   :catchpocket/backref-name :tracks}}
+
+ ;; Enums
+ :catchpocket/enums
+ {:artist_type           #:catchpocket.enum {:attributes  #{:artist/type}
+                                             :description "Type of artist"
+                                             :scan?       true}
+  :artist_gender         #:catchpocket.enum {:attributes #{:artist/gender}
+                                             :scan?      true}
+  :label_type            #:catchpocket.enum {:attributes #{:label/type}
+                                             :scan?      true}
+  :medium_type           #:catchpocket.enum {:attributes #{:medium/format}
+                                             :scan?      true}
+  :release_packaging     #:catchpocket.enum {:attributes #{:release/packaging}
+                                             :scan?      true}
+
+  :abstract_release_type #:catchpocket.enum {:attributes #{:abstractRelease/type}
+                                             :scan?      true}}
+
+ ;; Stillsuit settings
+ :stillsuit/compile?
+ true}

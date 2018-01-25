@@ -25,11 +25,12 @@
 
   :main catchpocket.main
 
-  :plugins []
+  ;:plugins [[me.arrdem/lein-git-version "2.0.4"]]
 
   :repositories [["workframe-private" {:url "s3p://deployment.workframe.com/maven/releases/"
                                        :no-auth true}]]
   :profiles {:dev {:plugins [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
+                             [jonase/eastwood "0.2.5"]
                              [lein-ancient "0.6.15"
                               :exclusions [com.fasterxml.jackson.core/jackson-annotations
                                            com.fasterxml.jackson.core/jackson-databind

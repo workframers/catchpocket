@@ -87,3 +87,4 @@ is stored.
 - Diagram
 - lein plugin / boot task / etc
 - Ref config via attribute metadata
+- lein plugin
