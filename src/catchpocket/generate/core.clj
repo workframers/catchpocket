@@ -147,6 +147,7 @@
         base-edn (util/load-edn (io/resource "catchpocket/lacinia-base.edn"))
         ent-map  (datomic/scan db config)
         enums    (enums/generate-enums db ent-map config)
+        _ (log/spy enums)
         objects  (generate-edn base-edn ent-map enums config)
         schema   (queries/attach-queries objects ent-map config)]
     (write-file! schema config))

@@ -37,38 +37,69 @@
        str/upper
        keyword))
 
+(defn generate-lacinia-names [value-set]
+  (->> value-set
+       (map (fn [{:catchpocket.enum/keys [value] :as value-map}]
+              (assoc value-map :catchpocket.enum/lacinia-name (enum-lacinia-value value))))
+       (into #{})))
+
 (defn lacinia-value-defs
   [enum-data]
-  (for [{:catchpocket.enum/keys [value doc]} (::values enum-data)]
-    {:enum-value (enum-lacinia-value value)
+  (for [{:catchpocket.enum/keys [value doc lacinia-name]} (::values enum-data)]
+    {:enum-value  lacinia-name
      :description (enum-value-description doc value)}))
 
 (defn generate-enum
   [enum-name enum-data]
-  (let [desc (:catchpocket.enum/description enum-data "")]
-    {:description (enum-type-description enum-data)
-     :values (lacinia-value-defs enum-data)}))
+  {:description (enum-type-description enum-data)
+   :values      (lacinia-value-defs enum-data)})
 
 (defn lacinia-enum-def
   [enum-info]
-  (reduce (fn [accum [enum-name enum-data]]
-            (assoc accum enum-name (generate-enum enum-name enum-data)))
-          {} enum-info))
+  (reduce-kv (fn [accum enum-name enum-data]
+               (assoc accum enum-name (generate-enum enum-name enum-data)))
+             {} enum-info))
 
 (defn unpack-enums
   [db ent-map enums config]
   (->> (for [[enum-name enum-config] enums
-             :let [{:catchpocket.enum/keys [attributes description values scan?]} enum-config
+             :let [{:catchpocket.enum/keys [attributes values scan?]} enum-config
                    all-values (set/union (when scan? (datomic/enum-scan db attributes))
-                                         values)]]
-         [enum-name (assoc enum-config ::values all-values)])
+                                         values)
+                   named      (generate-lacinia-names all-values)]]
+         [enum-name (assoc enum-config ::values named)])
        (into {})))
+
+(defn- datomic-lacinia-map
+  "Extract a nested map from the enum-info map that can be used to translate from
+  datomic enum names to lacinia enum names and vice versa."
+  [enum-info leaf-type]
+  (reduce (fn [acc [enum-type value lacinia-name]]
+            (if (= leaf-type ::lacinia)
+              (assoc-in acc [enum-type value] lacinia-name)
+              (assoc-in acc [enum-type lacinia-name] value)))
+          {}
+          (for [[enum-type {:keys [::values]}] enum-info
+                {:catchpocket.enum/keys [value lacinia-name]} values]
+            [enum-type value lacinia-name])))
+
+(defn attribute-to-enum-type
+  [enum-info]
+  (->> (for [[enum-type {:catchpocket.enum/keys [attributes]}] enum-info
+             attribute attributes]
+         [attribute enum-type])
+       (into {})))
+
 
 (defn generate-enums
   "Given an entity-map and config file, generate an enums list"
   [db ent-map {:catchpocket/keys [enums] :as config}]
-  (let [enum-info (unpack-enums db ent-map enums config)]
-    (log/spy enum-info)
-    (log/spy (lacinia-enum-def enum-info))
-    {:enums (lacinia-enum-def enum-info)}))
+  (let [enum-info   (unpack-enums db ent-map enums config)
+        enum-defs   (lacinia-enum-def enum-info)
+        lacinia-map (datomic-lacinia-map enum-info ::lacinia)
+        datomic-map (datomic-lacinia-map enum-info ::datomic)]
+    {:catchpocket.enums/lacinia-defs  enum-defs
+     :catchpocket.enums/attribute-map (attribute-to-enum-type enum-info)
+     :stillsuit/enums                 {:stillsuit/lacinia-to-datomic lacinia-map
+                                       :stillsuit/datomic-to-lacinia datomic-map}}))
 
