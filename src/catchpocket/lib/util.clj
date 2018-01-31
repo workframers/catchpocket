@@ -1,14 +1,11 @@
 (ns catchpocket.lib.util
-  (:require [clojure.tools.logging :as log]
-            [clojure.edn :as edn]
-            [java-time :as jt]
+  (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [cuerdas.core :as str])
   (:import (java.io IOException PushbackReader)))
 
 (defn timestamp []
-  (jt/format (jt/formatter :iso-instant) (jt/offset-date-time)))
-
+  (str (java.util.Date.)))
 
 (defn die!
   "Die with an error message (the top-level -main function is looking for this)"

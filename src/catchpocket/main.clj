@@ -3,7 +3,8 @@
             [catchpocket.generate.core :as g]
             [clojure.tools.cli :as cli]
             [clojure.tools.logging :as log]
-            [clojure.string :as string]))
+            [clojure.string :as string])
+  (:gen-class))
 
 (def cli-options
   [["-d" "--debug" "Produce debug output" :default false]
