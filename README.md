@@ -13,10 +13,18 @@ catchpocket depends on the datomic libraries being installed locally. To do so:
 - From the root of that folder, run `bin/maven-install` to install the
   client libraries in your local repository.
 
+See also the [instructions at datomic.com](https://docs.datomic.com/on-prem/integrating-peer-lib.html#maven-setup).
+
+You can run catchpocket from leiningen (via `lein run`) or from the Clojure
+command-line tools from [tools.deps.alpha](https://github.com/clojure/tools.deps.alpha)
+(via `clojure -m catchpocket.main`).
+
 ## Running
 
+Catchpocket takes the path to an EDN configuration file as its main parameter.
+
 ```
-lein run generate datomic:dev://localhost:4334/my-db-name
+clojure -m catchpocket.main ./samples/mbrainz.edn
 ```
 
 ### Testing it out
