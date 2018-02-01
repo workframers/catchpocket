@@ -9,9 +9,8 @@
 (defn namespace-to-type [kw]
   (-> kw str/camel str/capital keyword))
 
-(defn attr-list [db]
-  (d/q '[;:find ?ident ?cardinality
-         :find ?ns ?attr ?doc
+(defn- attr-list [db]
+  (d/q '[:find ?ns ?attr ?doc
          :where
          [_ :db.install/attribute ?a]
          [?a :db/ident ?ident]
@@ -23,7 +22,7 @@
          (not [(re-find #"^db" ?ns)])]
        db))
 
-(defn attr-name
+(defn- attr-name
   ([id]
    (attr-name id false))
   ([id capitalize?]
@@ -37,7 +36,7 @@
           (str/join join)
           keyword))))
 
-(defn annotate-docs [attr-map]
+(defn- annotate-docs [attr-map]
   (let [info (keep identity [(when (:attribute/unique attr-map) "unique")
                              (when (:attribute/component? attr-map) "is-component")])
         note (format "> datomic attribute: `%s`. Type `%s`%s."
@@ -50,30 +49,34 @@
       note
       (str (:attribute/raw-doc attr-map) "\n\n" note))))
 
-(defn attr-info
+(defn- attr-info
   "Get metadata about a datomic attribute. Note that this operates on the result of a
   (d/attribute) call. This function also merges in any part of the :catchpocket/references
   bit of the config that is named after this datomic attribute."
-  [attr doc {:keys [:catchpocket/references]}]
-  (let [ident   (:ident attr)
-        from-cf (get references ident)
-        base    {:attribute/lacinia-name (attr-name ident)
-                 :attribute/ident        ident
-                 :attribute/field-type   (:value-type attr)
-                 :attribute/cardinality  (:cardinality attr)
-                 :attribute/unique       (:unique attr)
-                 :attribute/raw-doc      doc
-                 :attribute/indexed      (:indexed attr)
-                 :attribute/fulltext?    (:fulltext attr)
-                 :attribute/component?   (:is-component attr)}]
+  [db attr doc {:keys [:catchpocket/references]}]
+  (let [ident    (:ident attr)
+        attr-ent (d/entity db ident)
+        from-cf  (get references ident)
+        base     {:attribute/meta-lacinia-name (:catchpocket.meta/lacinia-name ident)
+                  :attribute/meta-lacinia-type (:catchpocket.meta/lacinia-type ident)
+                  :attribute/meta-backref-name (:catchpocket.meta/backref-name ident)
+                  :attribute/lacinia-name      (attr-name ident)
+                  :attribute/ident             ident
+                  :attribute/field-type        (:value-type attr)
+                  :attribute/cardinality       (:cardinality attr)
+                  :attribute/unique            (:unique attr)
+                  :attribute/raw-doc           doc
+                  :attribute/indexed           (:indexed attr)
+                  :attribute/fulltext?         (:fulltext attr)
+                  :attribute/component?        (:is-component attr)}]
     (merge base
            from-cf
            {:attribute/doc (annotate-docs base)})))
 
 ;; TODO: make-sensical
-(defn add-attr [config accum [ns attrs doc]]
+(defn- add-attr [config db accum [ns attr doc]]
   (update accum (attr-name ns true)
-          #((fnil conj #{}) % (attr-info attrs doc config))))
+          #((fnil conj #{}) % (attr-info db attr doc config))))
 
 (defn scan
   "Produce an entity map - a map of lacinia type names to a set of attribute maps,
@@ -81,7 +84,7 @@
   [db config]
   (log/info "Scanning datomic attributes...")
   (let [attrs (attr-list db)]
-    (reduce (partial add-attr config) {} attrs)))
+    (reduce (partial add-attr config db) {} attrs)))
 
 (defn enum-scan
   "Given a set of attributes, scan the database to produce the set of all of their values.
@@ -110,6 +113,6 @@
                (util/oxford attributes))
     (for [[value doc] vals]
       (merge
-        {:catchpocket.enum/value value}
-        (when (not= doc :none)
-          {:catchpocket.enum/doc   doc})))))
+       {:catchpocket.enum/value value}
+       (when (not= doc :none)
+         {:catchpocket.enum/doc doc})))))

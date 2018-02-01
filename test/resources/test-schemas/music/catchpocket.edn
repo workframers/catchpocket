@@ -1,0 +1,12 @@
+;; Sample config file for catchpocket running against the mbrainz sample database.
+;; See https://github.com/Datomic/mbrainz-sample
+{
+ ;; Schema-generation settings
+ :catchpocket/references  {:artist/albums
+                           {:catchpocket/reference-to :Album
+                            :catchpocket/backref-name :artist}
+                           :album/tracks
+                           {:catchpocket/reference-to :Track
+                            :catchpocket/backref-name :album}}
+
+ :stillsuit/compile?      true}
