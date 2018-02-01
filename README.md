@@ -24,8 +24,13 @@ command-line tools from [tools.deps.alpha](https://github.com/clojure/tools.deps
 Catchpocket takes the path to an EDN configuration file as its main parameter.
 
 ```
-clojure -m catchpocket.main ./samples/mbrainz.edn
+clojure -m catchpocket.main ./doc/samples/mbrainz.edn
 ```
+
+The configuration file specifies what database to connect to, and what file
+to produce as output; see
+[the files in `doc/sample`](https://github.com/workframers/catchpocket/tree/develop/doc/samples)
+for some examples.
 
 ### Testing it out
 
@@ -41,7 +46,7 @@ to lacinia schema information. It then generates a lacinia schema configuration.
 At runtime, the schema can be used with the `stillsuit` library to execute
 queries against the database.
 
-![Overview diagram](docs/overview.png?raw=true "Overview")
+![Overview diagram](doc/overview.png "Overview")
 
 catchpocket works by making a bunch of assumptions about the way your data
 is set up that may not be true (and are conventions datomic doesn't enforce):
@@ -52,7 +57,7 @@ is set up that may not be true (and are conventions datomic doesn't enforce):
 - It assumes that attribute refs always point to the same type of entity.
 
 These assumptions are probably incorrect for many datomic databases. You can
-control what actions catchpocket takes via a config file to ameliorate some
+control what actions catchpocket takes via the config file to ameliorate some
 of the attendant problems.
 
 ## Configuration
@@ -60,7 +65,9 @@ of the attendant problems.
 catchpocket reads its configuration from two primary sources.
 
 - A config file (in EDN)
-- Optionally, metadata in the datomic database itself.
+- Optionally, metadata in the datomic database itself can be attached to
+  attributes to tell catchpocket what sort of lacinia schema to generate
+  from them.
 
 ## Output
 
@@ -95,4 +102,3 @@ is stored.
 - Diagram
 - lein plugin / boot task / etc
 - Ref config via attribute metadata
-- lein plugin

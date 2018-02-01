@@ -6,14 +6,14 @@
             [clojure.string :as string])
   (:gen-class))
 
-(def cli-options
+(def ^:private cli-options
   [["-d" "--debug" "Produce debug output" :default false]
    [nil "--color" "Produce color logs" :default true]
    ["-h" "--help" "Print usage information" :default false]
    ["-o" "--output-dir" "Directory to produce files in"
     :default "target/catchpocket"]])
 
-(defn usage [options-summary]
+(defn- usage [options-summary]
   (->> ["Usage: lein catchpocket [options] CONFIG-FILE"
         ""
         "Options:"
@@ -21,11 +21,11 @@
         ""]
        (string/join \newline)))
 
-(defn error-msg [errors]
+(defn- error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
        (string/join \newline errors)))
 
-(defn validate-args [args]
+(defn- validate-args [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
       (:help options)                              ; help => exit OK with usage summary
@@ -42,7 +42,7 @@
       :else                                        ; failed validation => exit with usage summary
       {::exit-message (usage summary)})))
 
-(defn exit!
+(defn- exit!
   ([status]
    (exit! status nil))
   ([status msg]

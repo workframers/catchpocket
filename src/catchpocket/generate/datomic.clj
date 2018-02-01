@@ -5,11 +5,6 @@
             [clojure.set :as set]
             [catchpocket.lib.util :as util]))
 
-(defn tdb []
-  (-> "datomic:dev://localhost:4334/workframe"
-      d/connect
-      d/db))
-
 ;; TODO: move this into stillsuit, integrate
 (defn namespace-to-type [kw]
   (-> kw str/camel str/capital keyword))
@@ -87,21 +82,6 @@
   (log/info "Scanning datomic attributes...")
   (let [attrs (attr-list db)]
     (reduce (partial add-attr config) {} attrs)))
-
-(defn- scan-single-attribute
-  "Given an attribute in the db"
-  [db attribute]
-  (let [vals (d/q '[:find ?v ?attr-info
-                    :in $ ?attr
-                    :where
-                    [_ ?attr ?v]
-                    [(datomic.api/attribute $ ?v) ?attr-info]]
-                  db attribute)]
-    (->> (for [val vals
-               :let [doc (when (integer? val)
-                           (some->> val (d/entity db) :db/doc))]]
-           {::enum val ::desc doc ::attr attribute})
-         (into #{}))))
 
 (defn enum-scan
   "Given a set of attributes, scan the database to produce the set of all of their values.
