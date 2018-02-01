@@ -97,7 +97,6 @@ is stored.
 - Security / predicates on attributes
 - Skip attributes
 - Inference
-- Enums
 - Inject session (/logged-in user) API
 - Diagram
 - lein plugin / boot task / etc
