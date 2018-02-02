@@ -90,7 +90,6 @@
          [attribute enum-type])
        (into {})))
 
-
 (defn generate-enums
   "Given an entity-map and config file, generate an enums list"
   [db ent-map {:catchpocket/keys [enums] :as config}]

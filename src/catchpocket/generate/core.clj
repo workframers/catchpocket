@@ -160,7 +160,6 @@
    (construct-config config nil))
   ([config override]
    (let [defaults (util/load-edn (io/resource default-config))
-         ;cmd-line (util/load-edn config-file)
          merged   (util/deep-map-merge config defaults override)]
      merged)))
 
@@ -172,7 +171,6 @@
         enums    (enums/generate-enums db ent-map config)
         objects  (generate-edn base-edn ent-map enums config)
         schema   (queries/attach-queries objects ent-map config)]
-    (log/spy base-edn)
     schema))
 
 (defn- write-file! [schema config]

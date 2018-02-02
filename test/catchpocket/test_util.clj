@@ -27,7 +27,7 @@
       (let [conn (d/connect uri)]
         (doseq [tx txes]
           @(d/transact conn tx))
-        (log/debugf "Loaded %d transactions from %s" (count txes) db-name)
+        (log/debugf "Loaded %d transactions from %s to %s" (count txes) path uri)
         conn))))
 
 (defn- setup-datomic []
@@ -37,6 +37,7 @@
 
 (defn- teardown-datomic []
   (doseq [db-name all-db-names]
+    ;(some-> @db-store (get db-name) (d/release))
     (d/delete-database (db-uri db-name))
     (log/debugf "Deleted database %s" db-name)
     (swap! db-store dissoc db-name)))

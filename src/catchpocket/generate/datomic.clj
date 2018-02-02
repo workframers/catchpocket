@@ -9,25 +9,46 @@
 (defn namespace-to-type [kw]
   (-> kw str/camel str/capital keyword))
 
-(defn- attr-list [db]
-  (d/q '[:find ?ns ?attr ?doc
-         :where
-         [_ :db.install/attribute ?a]
-         [?a :db/ident ?ident]
-         [?a :db/doc ?doc]
-         [(namespace ?ident) ?ns]
-         [(datomic.api/attribute $ ?a) ?attr]
-         (not [(re-find #"deprecated" ?ns)])
-         (not [(re-find #"fressian" ?ns)])
-         (not [(re-find #"^db" ?ns)])]
-       db))
+(defn- attr-entities
+  "Scan a database for metadata about its attributes. Return a seq of entities for the attributes.
+  Skip attributes with `deprecated` or `fressian` in their namespaces."
+  [db]
+  (->> (d/q '[:find [?a ...]
+              :where
+              [?a :db/valueType]
+              [?a :db/ident ?ident]
+              [(namespace ?ident) ?ns]
+              (not [(re-find #"deprecated" ?ns)])
+              (not [(re-find #"fressian" ?ns)])
+              (not [(re-find #"^db" ?ns)])]
+            db)
+       (map (partial d/entity db))))
 
-(defn- attr-name
-  ([id]
-   (attr-name id false))
-  ([id capitalize?]
-   (let [xform (if capitalize? str/capital identity)
-         join  (if capitalize? "" "_")]
+;; TODO: make this configurable
+(defn lacinia-type-name
+  "Given a datomic attribute keyword such as `:my-thing/attribute-name` and a catchpocket config
+  map, convert the keyword's namespace to a lacinia type name suchs as `:MyThing`."
+  [attribute-kw config]
+  (let [capitalize? true
+        parts       (-> attribute-kw
+                        namespace
+                        str/kebab
+                        (str/split #"[^A-Za-z0-9]+"))
+        xform       (if capitalize? str/capital identity)
+        sep         (if capitalize? "" "_")]
+    (->> parts
+         (remove str/blank?)
+         (map xform)
+         (str/join sep)
+         keyword)))
+
+;; TODO: this too
+(defn- lacinia-field-name
+  ([attr-ent config]
+   (let [capitalize? false
+         id          (:db/ident attr-ent)
+         xform       (if capitalize? str/capital identity)
+         join        (if capitalize? "" "_")]
      (->> (-> id
               str/kebab
               (str/split #"[^A-Za-z0-9]+"))
@@ -49,42 +70,53 @@
       note
       (str (:attribute/raw-doc attr-map) "\n\n" note))))
 
+(def ^:private attr-name-to-attr-info-name
+  "This map translates from attributes that are attached to the entity for an
+  attribute to the `:attribute/*` names that are used when we generate the schema."
+  {:catchpocket.meta/backref-name :attribute/meta-backref-name
+   :catchpocket.meta/lacinia-name :attribute/meta-lacinia-name
+   :catchpocket.meta/lacinia-type :attribute/meta-lacinia-type
+   :db/unique                     :attribute/unique
+   :db/valueType                  :attribute/field-type
+   :db/isComponent                :attribute/component?
+   :db/fulltext                   :attribute/fulltext?
+   :db/cardinality                :attribute/cardinality
+   :db/doc                        :attribute/raw-doc
+   :db/indexed                    :attribute/indexed})
+
 (defn- attr-info
   "Get metadata about a datomic attribute. Note that this operates on the result of a
   (d/attribute) call. This function also merges in any part of the :catchpocket/references
   bit of the config that is named after this datomic attribute."
-  [db attr doc {:keys [:catchpocket/references]}]
-  (let [ident    (:ident attr)
-        attr-ent (d/entity db ident)
-        from-cf  (get references ident)
-        base     {:attribute/meta-lacinia-name (:catchpocket.meta/lacinia-name ident)
-                  :attribute/meta-lacinia-type (:catchpocket.meta/lacinia-type ident)
-                  :attribute/meta-backref-name (:catchpocket.meta/backref-name ident)
-                  :attribute/lacinia-name      (attr-name ident)
-                  :attribute/ident             ident
-                  :attribute/field-type        (:value-type attr)
-                  :attribute/cardinality       (:cardinality attr)
-                  :attribute/unique            (:unique attr)
-                  :attribute/raw-doc           doc
-                  :attribute/indexed           (:indexed attr)
-                  :attribute/fulltext?         (:fulltext attr)
-                  :attribute/component?        (:is-component attr)}]
-    (merge base
-           from-cf
-           {:attribute/doc (annotate-docs base)})))
+  [attr-ent lacinia-type {:keys [:catchpocket/references] :as config}]
+  (let [ident   (:db/ident attr-ent)
+        from-cf (get references ident)
+        attrs   (->> (for [[ent-name attr-name] attr-name-to-attr-info-name
+                           :let [value (get attr-ent ent-name)]
+                           :when value]
+                       [attr-name value])
+                     (into {}))
+        full    (merge {:attribute/lacinia-name (lacinia-field-name attr-ent config)
+                        :attribute/lacinia-type lacinia-type
+                        :attribute/ident        ident}
+                       attrs
+                       from-cf)
+        docs    (annotate-docs full)]
+    (assoc full :attribute/doc docs)))
 
-;; TODO: make-sensical
-(defn- add-attr [config db accum [ns attr doc]]
-  (update accum (attr-name ns true)
-          #((fnil conj #{}) % (attr-info db attr doc config))))
+(defn- add-attr [config accum attr-ent]
+  (let [l-type  (lacinia-type-name (:db/ident attr-ent) config)
+        set-add (fnil conj #{})
+        ai      (attr-info attr-ent l-type config)]
+    (update accum l-type #(set-add % ai))))
 
 (defn scan
   "Produce an entity map - a map of lacinia type names to a set of attribute maps,
   where each attribute map corresponds to one datomic attribute as returned by (attr-info)."
   [db config]
   (log/info "Scanning datomic attributes...")
-  (let [attrs (attr-list db)]
-    (reduce (partial add-attr config db) {} attrs)))
+  (let [attr-ents (attr-entities db)]
+    (reduce (partial add-attr config) {} attr-ents)))
 
 (defn enum-scan
   "Given a set of attributes, scan the database to produce the set of all of their values.
