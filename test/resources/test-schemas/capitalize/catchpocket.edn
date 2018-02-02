@@ -1,0 +1,6 @@
+;; Sample config file for catchpocket running against the mbrainz sample database.
+{
+ ;; Schema-generation settings
+ :catchpocket/references  {:secret-agent/country-of-origin
+                           {:catchpocket/reference-to :Country
+                            :catchpocket/backref-name :secret_agents}}}

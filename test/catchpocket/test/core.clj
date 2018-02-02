@@ -14,3 +14,12 @@
            #{:Artist :Album :Track}))
     (is (= (some-> schema :objects :Artist :fields :albums :resolve first)
            :stillsuit/ref))))
+
+(deftest test-music-caps
+  (let [schema (test-util/load-setup :capitalize)]
+    (is (= (some-> schema :objects keys set)
+           #{:SecretAgent :Country}))
+    (is (= (some-> schema :objects :SecretAgent :fields keys set)
+           #{:name :country_of_origin}))
+    (is (= (some-> schema :objects :Country :fields keys set)
+           #{:name :land_mass}))))

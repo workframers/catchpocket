@@ -63,10 +63,11 @@
   bunch of sample edn data and queries and compile a schema. Return a map of the data which
   can be passed to (execute-query) for further testing."
   ([setup-name]
-   (load-setup setup-name false))
-  ([setup-name compile?]
+   (load-setup setup-name nil))
+  ([setup-name override-options]
    (let [config (-> (get-config setup-name)
-                    (assoc :catchpocket/datomic-uri (db-uri setup-name)))
+                    (assoc :catchpocket/datomic-uri (db-uri setup-name))
+                    (util/deep-map-merge override-options))
          conn   (get-connection setup-name)]
      (g/generate conn config))))
 

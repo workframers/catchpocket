@@ -1,0 +1,36 @@
+;; Stripped-down album / artist / track model for tests
+;; cf http://docs.datomic.com/schema.html#required-schema-attributes
+[[;; Schema - artist
+  {:db/ident       :secret-agent/name
+   :db/valueType   :db.type/string
+   :db/cardinality :db.cardinality/one
+   :db/unique      :db.unique/identity}
+  {:db/ident       :secret-agent/country-of-origin
+   :db/valueType   :db.type/ref
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :country/name
+   :db/valueType   :db.type/string
+   :db/cardinality :db.cardinality/one
+   :db/unique      :db.unique/identity}
+  {:db/ident       :country/land-mass
+   :db/valueType   :db.type/long
+   :db/cardinality :db.cardinality/one
+   :db/unique      :db.unique/identity}]
+
+ ;; Data
+ [{:db/id "usa"
+   :country/name "USA"
+   :country/land-mass 9629091}
+  {:db/id "russia"
+   :country/name "Russia"
+   :country/land-mass 17075200}
+  {:db/id "uk"
+   :country/name "UK"
+   :country/land-mass 244820}
+  {:secret-agent/name "Austin Powers"
+   :secret-agent/country-of-origin "uk"}
+  {:secret-agent/name "Maxwell Smart"
+   :country/country-of-origin "usa"}
+  {:secret-agent/name "Boris Badenov"
+   :country/country-of-origin "russia"}]]
+
