@@ -18,8 +18,6 @@
                          (map xform))
         complete    (concat [(-> camels first xform-head)]
                             (rest camels))]
-    (log/spy [style (some? capitalize?) (some? up-first?) sep])
-    (log/spy [complete])
     (->> complete
          (str/join sep)
          keyword)))
@@ -30,10 +28,16 @@
   [attribute-kw {:keys [:catchpocket/names] :as config}]
   (keyword-part->type
     (namespace attribute-kw)
-    (get names :catchpocket.lacinia-type :Snake_Case)))
+    (get names :objects :Snake_Case)))
 
 (defn lacinia-field-name
   [attribute-kw {:keys [:catchpocket/names] :as config}]
   (keyword-part->type
     (name attribute-kw)
-    (get names :catchpocket.lacinia-field :snake_case)))
+    (get names :fields :snake_case)))
+
+(defn db-id-name
+  "Return the lacinia name for the :db/id datomic field, which is used in the interface definition
+  for entities."
+  [config]
+  (lacinia-field-name :db-id config))

@@ -1,12 +1,12 @@
-(ns ^:watch catchpocket.test.names
+(ns catchpocket.test.names
   (:require [clojure.test :refer :all]
             [catchpocket.generate.names :as names]))
 
 (defn- lacinia-field [kw style]
-  (names/lacinia-field-name kw {:catchpocket/names {:catchpocket.lacinia-field style}}))
+  (names/lacinia-field-name kw {:catchpocket/names {:fields style}}))
 
 (defn- lacinia-type [kw style]
-  (names/lacinia-type-name kw {:catchpocket/names {:catchpocket.lacinia-type style}}))
+  (names/lacinia-type-name kw {:catchpocket/names {:objects style}}))
 
 (deftest names
   (let [kw :this-keyword/has-some-words]

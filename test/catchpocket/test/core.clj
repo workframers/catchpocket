@@ -15,11 +15,23 @@
     (is (= (some-> schema :objects :Artist :fields :albums :resolve first)
            :stillsuit/ref))))
 
-(deftest test-music-caps
-  (let [schema (test-util/load-setup :capitalize)]
+(deftest test-snake
+  (let [schema (test-util/load-setup :capitalize {:catchpocket/names {:fields :snake_case
+                                                                      :objects :Snake_Case}})]
+    (is (= (some-> schema :objects keys set)
+           #{:Secret_Agent :Country}))
+    (is (= (some-> schema :objects :Secret_Agent :fields keys set)
+           #{:name :country_of_origin :db_id}))
+    (is (= (some-> schema :objects :Country :fields keys set)
+           #{:name :land_mass :db_id :secret_agents}))))
+
+(deftest test-camel
+  (let [schema (test-util/load-setup :capitalize {:catchpocket/names {:fields :camelCase
+                                                                      :objects :CamelCase}})]
     (is (= (some-> schema :objects keys set)
            #{:SecretAgent :Country}))
     (is (= (some-> schema :objects :SecretAgent :fields keys set)
-           #{:name :country_of_origin}))
+           #{:name :countryOfOrigin :dbId}))
     (is (= (some-> schema :objects :Country :fields keys set)
-           #{:name :land_mass}))))
+           ;; Note: :secret_agents is not capitalized as it comes from the catchpocket config
+           #{:name :landMass :dbId :secret_agents}))))

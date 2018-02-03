@@ -7,7 +7,8 @@
             [clojure.java.io :as io]
             [fipp.edn :as fipp]
             [catchpocket.lib.util :as util]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [catchpocket.generate.names :as names]))
 
 (def ^:private default-config "catchpocket/defaults.edn")
 
@@ -65,12 +66,12 @@
                        lacinia-type)]
     (when lacinia-type
       (merge
-       {:type    full-type
-        :resolve [:stillsuit/ref
-                  #:stillsuit{:attribute    (:attribute/ident field)
-                              :lacinia-type lacinia-type}]}
-       (when doc
-         {:description doc})))))
+        {:type    full-type
+         :resolve [:stillsuit/ref
+                   #:stillsuit{:attribute    (:attribute/ident field)
+                               :lacinia-type lacinia-type}]}
+        (when doc
+          {:description doc})))))
 
 (defn- make-enum-field [field enum-type enums config]
   (let [{:attribute/keys [cardinality doc ident]} field
@@ -79,16 +80,18 @@
                     enum-type)]
     (log/tracef "Using enum type %s for field %s" full-type ident)
     (merge
-     {:type    full-type
-      :resolve [:stillsuit/enum
-                #:stillsuit{:attribute    (:attribute/ident field)
-                            :lacinia-type enum-type}]}
-     (when doc
-       {:description doc}))))
+      {:type    full-type
+       :resolve [:stillsuit/enum
+                 #:stillsuit{:attribute    (:attribute/ident field)
+                             :lacinia-type enum-type}]}
+      (when doc
+        {:description doc}))))
 
-(defn- assoc-db-id [field-def {:keys [:stillsuit/db-id-name]}]
-  (assoc field-def db-id-name {:type        'ID
-                               :description "Unique :db/id value for a datomic entity"}))
+(defn- assoc-db-id [field-def config]
+  (assoc field-def
+    (names/db-id-name config)
+    {:type        :JavaLong
+     :description "Unique :db/id value for a datomic entity"}))
 
 (defn- make-fields [field-defs enums config]
   (->> (for [{:keys [:attribute/lacinia-name :attribute/ident] :as field} field-defs
