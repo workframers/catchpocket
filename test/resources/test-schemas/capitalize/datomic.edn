@@ -30,7 +30,7 @@
   {:secret-agent/name "Austin Powers"
    :secret-agent/country-of-origin "uk"}
   {:secret-agent/name "Maxwell Smart"
-   :country/country-of-origin "usa"}
+   :secret-agent/country-of-origin "usa"}
   {:secret-agent/name "Boris Badenov"
-   :country/country-of-origin "russia"}]]
+   :secret-agent/country-of-origin "russia"}]]
 
