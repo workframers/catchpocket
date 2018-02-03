@@ -10,28 +10,51 @@
   (let [schema (test-util/load-setup :music)]
     (is (some? (:catchpocket/generated-at schema)))
     (is (some? (:catchpocket/version schema)))
-    (is (= (some-> schema :objects keys set)
-           #{:Artist :Album :Track}))
-    (is (= (some-> schema :objects :Artist :fields :albums :resolve first)
-           :stillsuit/ref))))
+    (is (= #{:Artist :Album :Track}
+           (some-> schema :objects keys set)))
+    (is (= :stillsuit/ref
+           (some-> schema :objects :Artist :fields :albums :resolve first)))))
 
-(deftest test-snake
-  (let [schema (test-util/load-setup :capitalize {:catchpocket/names {:fields :snake_case
-                                                                      :objects :Snake_Case}})]
-    (is (= (some-> schema :objects keys set)
-           #{:Secret_Agent :Country}))
-    (is (= (some-> schema :objects :Secret_Agent :fields keys set)
-           #{:name :country_of_origin :db_id}))
-    (is (= (some-> schema :objects :Country :fields keys set)
-           #{:name :land_mass :db_id :secret_agents}))))
+(deftest test-default-case-conversion
+  (testing "default case conversion"
+    (let [schema (test-util/load-setup :capitalize)]
+      (is (= #{:Secret_Agent :Country}
+             (some-> schema :objects keys set)))
+      (is (= #{:name :country_of_origin :db_id :hashed_password}
+             (some-> schema :objects :Secret_Agent :fields keys set)))
+      (is (= #{:name :land_mass :db_id :secret_agents}
+             (some-> schema :objects :Country :fields keys set))))))
 
-(deftest test-camel
-  (let [schema (test-util/load-setup :capitalize {:catchpocket/names {:fields :camelCase
-                                                                      :objects :CamelCase}})]
-    (is (= (some-> schema :objects keys set)
-           #{:SecretAgent :Country}))
-    (is (= (some-> schema :objects :SecretAgent :fields keys set)
-           #{:name :countryOfOrigin :dbId}))
-    (is (= (some-> schema :objects :Country :fields keys set)
-           ;; Note: :secret_agents is not capitalized as it comes from the catchpocket config
-           #{:name :landMass :dbId :secret_agents}))))
+(deftest test-snake-conversion
+  (testing "sanke_case conversion"
+    (let [config {:catchpocket/names {:fields  :snake_case
+                                      :objects :Snake_Case}}
+          schema (test-util/load-setup :capitalize config)]
+      (is (= #{:Secret_Agent :Country}
+             (some-> schema :objects keys set)))
+      (is (= #{:name :country_of_origin :db_id :hashed_password}
+             (some-> schema :objects :Secret_Agent :fields keys set)))
+      (is (= #{:name :land_mass :db_id :secret_agents}
+             (some-> schema :objects :Country :fields keys set))))))
+
+(deftest test-camel-conversion
+  (testing "camelCase conversion"
+    (let [config {:catchpocket/names {:fields  :camelCase
+                                      :objects :CamelCase}}
+          schema (test-util/load-setup :capitalize config)]
+      (is (= #{:SecretAgent :Country}
+             (some-> schema :objects keys set)))
+
+      (is (= #{:name :countryOfOrigin :dbId :hashedPassword}
+             (some-> schema :objects :SecretAgent :fields keys set)))
+      (is (= #{:name :landMass :dbId :secret_agents}
+             ;; Note: :secret_agents is not capitalized as it comes from the catchpocket config
+             (some-> schema :objects :Country :fields keys set))))))
+
+(deftest test-skip
+  (testing "skip attributes")
+  (let [config {:catchpocket/skip #{:secret-agent/hashed-password}}
+        schema (test-util/load-setup :capitalize config)]
+    (is (= #{:name :country_of_origin :db_id}
+           (some-> schema :objects :Secret_Agent :fields keys set)))))
+

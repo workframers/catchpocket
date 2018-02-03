@@ -73,10 +73,15 @@
     (assoc full :attribute/doc docs)))
 
 (defn- add-attr [config accum attr-ent]
-  (let [l-type  (names/lacinia-type-name (:db/ident attr-ent) config)
+  (let [ident   (:db/ident attr-ent)
+        l-type  (names/lacinia-type-name ident config)
         set-add (fnil conj #{})
         ai      (attr-info attr-ent l-type config)]
-    (update accum l-type #(set-add % ai))))
+    (if (contains? (:catchpocket/skip config) ident)
+      (do
+        (log/infof "Skipping datomic attribute %s" ident)
+        accum)
+      (update accum l-type #(set-add % ai)))))
 
 (defn scan
   "Produce an entity map - a map of lacinia type names to a set of attribute maps,

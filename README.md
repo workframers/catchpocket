@@ -95,9 +95,6 @@ is stored.
 
 ### TODO:
 - Security / predicates on attributes
-- Skip attributes
 - Inference
 - Inject session (/logged-in user) API
-- Diagram
-- lein plugin / boot task / etc
 - Ref config via attribute metadata
