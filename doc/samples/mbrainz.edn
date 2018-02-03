@@ -59,7 +59,6 @@
                                              :scan?      true}
   :release_packaging     #:catchpocket.enum {:attributes #{:release/packaging}
                                              :scan?      true}
-
   :abstract_release_type #:catchpocket.enum {:attributes #{:abstractRelease/type}
                                              :scan?      true}}
 

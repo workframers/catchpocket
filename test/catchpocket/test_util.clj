@@ -11,7 +11,7 @@
 ;; them out into a third library
 
 (def ^:private test-db-prefix "datomic:mem://stillsuit-test-")
-(def ^:private all-db-names [:music :capitalize])
+(def ^:private all-db-names [:music :capitalize :enums])
 (def ^:private db-store (atom {}))
 
 (defn- db-uri [db-name]
@@ -37,7 +37,6 @@
 
 (defn- teardown-datomic []
   (doseq [db-name all-db-names]
-    ;(some-> @db-store (get db-name) (d/release))
     (d/delete-database (db-uri db-name))
     (log/debugf "Deleted database %s" db-name)
     (swap! db-store dissoc db-name)))
