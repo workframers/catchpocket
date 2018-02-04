@@ -1,0 +1,8 @@
+{:catchpocket/enums
+ {:movement_type_kw  #:catchpocket.enum {:attributes  #{:animal-keyword/movement}
+                                         :description "Type of movement"
+                                         :scan?       true}
+  :movement_type_ref #:catchpocket.enum {:attributes  #{:animal-ref/movement}
+                                         :description "Type of movement"
+                                         :scan?       true}}}
+
