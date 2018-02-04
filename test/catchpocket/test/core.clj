@@ -118,9 +118,9 @@
       (testing "Datomic type override for graphql type"
         (is (= '(list (non-null :Album))
                (get-in schema [:objects :Artist :fields :albums :type]))))
-      ;(testing "Datomic backref works correctly"
-      ;  (is (= :Album
-      ;         (get-in schema [:objects :Tracks :fields :album :type]))))
+      (testing "Datomic backref works correctly"
+        (is (= :Album
+               (get-in schema [:objects :Tracks :fields :album :type]))))
       (testing "Datomic backref missing implies no backref"
         (is (nil? (get-in schema [:objects :Album :fields :artists :type]))))
       (testing "Datomic type override for graphql type"
