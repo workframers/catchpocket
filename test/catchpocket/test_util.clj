@@ -11,7 +11,7 @@
 ;; them out into a third library
 
 (def ^:private test-db-prefix "datomic:mem://stillsuit-test-")
-(def ^:private all-db-names [:music :capitalize :enums])
+(def ^:private all-db-names [:music :capitalize :enums :annotation])
 (def ^:private db-store (atom {}))
 
 (defn- db-uri [db-name]
@@ -27,7 +27,8 @@
       (let [conn (d/connect uri)]
         (doseq [tx txes]
           @(d/transact conn tx))
-        (log/debugf "Loaded %d transactions from %s to %s" (count txes) path uri)
+        (log/debugf "Loaded %d transactions from %s to %s"
+                    (count txes) (format "%s/datomic.edn" (name db-name)) uri)
         conn))))
 
 (defn- setup-datomic []
@@ -59,7 +60,7 @@
 
 (defn load-setup
   "Given a db-name which maps to a directory under test/resources/test-schemas, load up a
-  bunch of sample edn data and queries and compile a schema. Return a map of the data which
+  test database and its associated config from . Return a map of the data which
   can be passed to (execute-query) for further testing."
   ([setup-name]
    (load-setup setup-name nil))

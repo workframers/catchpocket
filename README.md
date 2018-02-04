@@ -93,8 +93,11 @@ In Frank Herbert's _Dune_ novels, a catchpocket is a place where precious water
 is stored.
 
 
-### TODO:
+# License
+
+Licensed under the EPL 2.0, see LICENSE.txt. Copyright (c) 2018 Wiorkframe.
+
+# TODO:
 - Security / predicates on attributes
 - Inference
 - Inject session (/logged-in user) API
-- Ref config via attribute metadata

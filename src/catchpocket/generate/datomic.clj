@@ -19,8 +19,9 @@
               [?a :db/ident ?ident]
               [(namespace ?ident) ?ns]
               (not [(re-find #"deprecated" ?ns)])
-              (not [(re-find #"fressian" ?ns)])
-              (not [(re-find #"^db" ?ns)])]
+              (not [(re-find #"^fressian" ?ns)])
+              (not [(re-find #"^db" ?ns)])
+              (not [(re-find #"^catchpocket" ?ns)])]
             db)
        (map (partial d/entity db))))
 
@@ -40,16 +41,17 @@
 (def ^:private attr-name-to-attr-info-name
   "This map translates from attributes that are attached to the entity for an
   attribute to the `:attribute/*` names that are used when we generate the schema."
-  {:catchpocket.meta/backref-name :attribute/meta-backref-name
-   :catchpocket.meta/lacinia-name :attribute/meta-lacinia-name
-   :catchpocket.meta/lacinia-type :attribute/meta-lacinia-type
-   :db/unique                     :attribute/unique
-   :db/valueType                  :attribute/field-type
-   :db/isComponent                :attribute/component?
-   :db/fulltext                   :attribute/fulltext?
-   :db/cardinality                :attribute/cardinality
-   :db/doc                        :attribute/raw-doc
-   :db/indexed                    :attribute/indexed})
+  {:catchpocket/lacinia-backref-name    :attribute/meta-backref-name
+   :catchpocket/lacinia-field-name      :attribute/meta-lacinia-name
+   :catchpocket/lacinia-field-type      :attribute/meta-lacinia-type
+   :catchpocket/lacinia-backref-single? :attribute/meta-backref-single
+   :db/unique                           :attribute/unique
+   :db/valueType                        :attribute/field-type
+   :db/isComponent                      :attribute/component?
+   :db/fulltext                         :attribute/fulltext?
+   :db/cardinality                      :attribute/cardinality
+   :db/doc                              :attribute/raw-doc
+   :db/indexed                          :attribute/indexed})
 
 (defn- attr-info
   "Get metadata about a datomic attribute. Note that this operates on the result of a

@@ -7,9 +7,9 @@
    :db/valueType   :db.type/ref
    :db/cardinality :db.cardinality/one}
   ;; Enum values for the above
-  {:db/ident :movement/quadroped}
-  {:db/ident :movement/biped}
-  {:db/ident :movement/brachiator}]
+  {:db/ident :movement.ref/quadroped}
+  {:db/ident :movement.ref/biped}
+  {:db/ident :movement.ref/brachiator}]
 
  [;; These entities use keyword enums
   {:db/ident       :animal-keyword/id
@@ -20,15 +20,15 @@
    :db/valueType   :db.type/keyword
    :db/cardinality :db.cardinality/one}]
 
- ;; Ref data
+ ;; Ref enums. Note that these fields are refs to :db/ident values.
  [{:animal-ref/id       "horse"
-   :animal-ref/movement :movement/quadroped}
+   :animal-ref/movement :movement.ref/quadroped}
   {:animal-ref/id       "human"
-   :animal-ref/movement :movement/biped}
+   :animal-ref/movement :movement.ref/biped}
   {:animal-ref/id       "monkey"
-   :animal-ref/movement :movement/brachiator}]
+   :animal-ref/movement :movement.ref/brachiator}]
 
- ;; Keyword data
+ ;; Keyword enums. These fields are :db.type/keyword values, not refs.
  [{:animal-keyword/id       "horse"
    :animal-keyword/movement :movement/quadroped}
   {:animal-keyword/id       "human"

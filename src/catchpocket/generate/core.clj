@@ -13,10 +13,10 @@
 (def ^:private default-config "catchpocket/defaults.edn")
 
 (def ^:private datomic-to-lacinia
-  {:db.type/keyword ::keyword
-   :db.type/string  'String
+  {:db.type/string  'String
    :db.type/boolean 'Boolean
-   :db.type/long    'Int                                    ; ASSUMPTION
+   :db.type/long    :JavaLong
+   :db.type/keyword :ClojureKeyword
    :db.type/bigint  'String
    :db.type/float   'Float
    :db.type/double  'Float
@@ -25,7 +25,9 @@
    :db.type/instant ::instant
    :db.type/uuid    'ID
    :db.type/uri     'String
-   :db.type/bytes   'String})
+   :db.type/bytes   'String
+   ;; These types are usable as :catchpocket/lacinia-field-type values
+   :Int             'Int})
 
 (defn- get-ref-type [field {:keys [:stillsuit/datomic-entity-type] :as config}]
   (if-let [override-type (-> field :catchpocket/reference-to datomic/namespace-to-type)]
@@ -39,15 +41,25 @@
       datomic-entity-type)))
 
 (defn- get-field-type [field config]
-  (let [field-type (:attribute/field-type field)
-        primitive  (get datomic-to-lacinia field-type)]
+  (let [base-type        (:attribute/field-type field)
+        datomic-override (:attribute/meta-lacinia-type field)
+        field-type       (if datomic-override
+                           (do
+                             (log/infof "Overriding type '%s' with type '%s' for attribute '%s'"
+                                        base-type datomic-override (:attribute/ident field))
+                             datomic-override)
+                           base-type)
+        primitive        (get datomic-to-lacinia field-type)]
     (cond
       ;; ASSUMPTION
       (= (:attribute/unique field) :db.unique/identity)
       'ID
 
-      (symbol? primitive)
+      (or (keyword? primitive) (symbol? primitive))
       primitive
+
+      datomic-override
+      datomic-override
 
       (= primitive ::ref)
       (get-ref-type field config)
@@ -94,13 +106,20 @@
      :description "Unique :db/id value for a datomic entity"}))
 
 (defn- make-fields [field-defs enums config]
-  (->> (for [{:keys [:attribute/lacinia-name :attribute/ident] :as field} field-defs
-             :let [enum-type (get-in enums [:catchpocket.enums/attribute-map ident])
-                   field-def (if enum-type
-                               (make-enum-field field enum-type enums config)
-                               (make-single-field field config))]
+  (->> (for [{:keys [:attribute/lacinia-name :attribute/meta-lacinia-name :attribute/ident] :as field}
+             field-defs
+             :let [enum-type  (get-in enums [:catchpocket.enums/attribute-map ident])
+                   field-def  (if enum-type
+                                (make-enum-field field enum-type enums config)
+                                (make-single-field field config))
+                   final-name (if meta-lacinia-name
+                                (do
+                                  (log/infof "Overriding lacinia name '%s' as '%s' for attribute '%s'"
+                                             lacinia-name meta-lacinia-name ident)
+                                  meta-lacinia-name)
+                                lacinia-name)]
              :when field-def]
-         [lacinia-name field-def])
+         [final-name field-def])
        (into {})))
 
 (defn- make-object [object enums field-defs config]

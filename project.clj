@@ -3,7 +3,7 @@
   :url "https://github.com/workframers/catchpocket"
   :pedantic? :warn
   :license {:name "EPL"
-            :url  "http://www.eclipse.org/legal/epl-v10.html"}
+            :url  "http://www.eclipse.org/legal/epl-v20.html"}
 
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/core.async "0.4.474"]
@@ -43,6 +43,7 @@
                                    [com.jakemccrary/lein-test-refresh "0.22.0"]
                                    [lein-cloverage "1.0.10"]
                                    [lein-codox "0.10.3"]
+                                   [venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]
                                    [lein-asciidoctor "0.1.14" :exclusions [org.slf4j/slf4j-api]]
                                    [lein-ancient "0.6.15"
                                     :exclusions [com.fasterxml.jackson.core/jackson-annotations
