@@ -17,13 +17,13 @@
    :db.type/boolean 'Boolean
    :db.type/long    :JavaLong
    :db.type/keyword :ClojureKeyword
-   :db.type/bigint  'String
+   :db.type/bigint  :JavaBigInt
    :db.type/float   'Float
    :db.type/double  'Float
-   :db.type/bigdec  'String
+   :db.type/bigdec  :JavaBigDec
    :db.type/ref     ::ref
    :db.type/instant ::instant
-   :db.type/uuid    'ID
+   :db.type/uuid    :JavaUUID
    :db.type/uri     'String
    :db.type/bytes   'String
    ;; These types are usable as :catchpocket/lacinia-field-type values
@@ -47,6 +47,7 @@
                            (do
                              (log/infof "Overriding type '%s' with type '%s' for attribute '%s'"
                                         base-type datomic-override (:attribute/ident field))
+                             (log/spy field)
                              datomic-override)
                            base-type)
         primitive        (get datomic-to-lacinia field-type)]
@@ -143,7 +144,15 @@
   [ent-map config]
   (for [[to-type field-defs] ent-map
         field-def field-defs
-        :let [backref (:catchpocket/backref-name field-def)]
+        :let [_                (when (:attribute/meta-backref-name field-def)
+                                 (log/spy field-def))
+              datomic-override (:attribute/meta-backref-name field-def)
+              backref          (if datomic-override
+                                 (do
+                                   (log/warnf "datomic-override: %s"
+                                              datomic-override)
+                                   datomic-override)
+                                 (:catchpocket/backref-name field-def))]
         :when backref
         :let [from-type   (-> field-def :catchpocket/reference-to datomic/namespace-to-type)
               ident       (:attribute/ident field-def)
@@ -170,12 +179,13 @@
   (let [objects   (create-objects ent-map enums config)
         backrefs  (find-backrefs ent-map config)
         decorated (reduce (partial add-backref config) objects backrefs)]
-    (assoc base-schema
-      :objects decorated
-      :enums (:catchpocket.enums/lacinia-defs enums)
-      :stillsuit/enum-map (:stillsuit/enum-map enums)
-      :catchpocket/generated-at (util/timestamp)
-      :catchpocket/version (:catchpocket/version config))))
+    (util/deep-map-merge
+      base-schema
+      {:objects                  decorated
+       :enums                    (:catchpocket.enums/lacinia-defs enums)
+       :stillsuit/enum-map       (:stillsuit/enum-map enums)
+       :catchpocket/generated-at (util/timestamp)
+       :catchpocket/version      (:catchpocket/version config)})))
 
 (defn construct-config
   ([config]
