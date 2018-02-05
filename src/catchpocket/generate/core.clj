@@ -55,14 +55,14 @@
       (= (:attribute/unique field) :db.unique/identity)
       'ID
 
+      (= primitive ::ref)
+      (get-ref-type field config)
+
       (or (keyword? primitive) (symbol? primitive))
       primitive
 
       datomic-override
       datomic-override
-
-      (= primitive ::ref)
-      (get-ref-type field config)
 
       :else
       (do
@@ -146,8 +146,8 @@
         :let [datomic-override (:attribute/meta-backref-name field-def)
               backref          (if datomic-override
                                  (do
-                                   (log/warnf "datomic-override: %s"
-                                              datomic-override)
+                                   (log/infof "Using backref name '%s' from datomic metadata on '%s'"
+                                              datomic-override (:attribute/ident field-def))
                                    datomic-override)
                                  (:catchpocket/backref-name field-def))]
         :when backref

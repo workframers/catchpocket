@@ -1,0 +1,5 @@
+{:catchpocket/references {:rainbow/one-ref
+                          {:catchpocket/reference-to :Rainbow
+                           :catchpocket/backref-name :backRef}}
+
+ :stillsuit/compile?     true}

@@ -11,7 +11,7 @@
 ;; them out into a third library
 
 (def ^:private test-db-prefix "datomic:mem://stillsuit-test-")
-(def ^:private all-db-names [:music :capitalize :enums :annotation])
+(def ^:private all-db-names [:music :capitalize :enums :annotation :rainbow])
 (def ^:private db-store (atom {}))
 
 (defn- db-uri [db-name]

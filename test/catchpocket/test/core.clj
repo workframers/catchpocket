@@ -106,7 +106,7 @@
                       ::obj-type obj-type
                       ::enum-type enum-type}))))
 
-(deftest ^:watch test-annotation
+(deftest test-annotation
     (let [schema (test-util/load-setup :annotation)]
       (testing "sanity check"
         (is (= #{:Artist :Album :Track}
@@ -126,3 +126,20 @@
         (is (= 'Int
                (get-in schema [:objects :Track :fields :position :type]))))))
 
+(deftest test-field-types
+    (let [schema (test-util/load-setup :rainbow)
+          obj    (some-> schema :objects :Rainbow :fields)]
+      (testing "sanity check"
+        (is (= #{:Rainbow} (some-> schema :objects keys set))))
+      (testing "Generated field types are kosher"
+        (is (= :ClojureKeyword (-> obj :one_keyword :type)))
+        (is (= :JavaLong (-> obj :one_long :type)))
+        (is (= :JavaUUID (-> obj :one_uuid :type)))
+        (is (= 'String (-> obj :one_string :type)))
+        (is (= 'String (-> obj :one_uri :type)))
+        (is (= 'String (-> obj :one_bytes :type)))
+        (is (= 'Boolean (-> obj :one_boolean :type)))
+        (is (= 'Float (-> obj :one_float :type)))
+        (is (= 'Float (-> obj :one_double :type)))
+        (is (= :JavaBigDec (-> obj :one_bigdec :type)))
+        (is (= :Rainbow (-> obj :one_ref :type))))))
