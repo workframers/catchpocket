@@ -107,8 +107,7 @@
                       ::enum-type enum-type}))))
 
 (deftest ^:watch test-annotation
-    (let [config {:catchpocket/skip #{:secret-agent/hashed-password}}
-          schema (test-util/load-setup :annotation config)]
+    (let [schema (test-util/load-setup :annotation)]
       (testing "sanity check"
         (is (= #{:Artist :Album :Track}
                (some-> schema :objects keys set))))
@@ -120,7 +119,7 @@
                (get-in schema [:objects :Artist :fields :albums :type]))))
       (testing "Datomic backref works correctly"
         (is (= :Album
-               (get-in schema [:objects :Tracks :fields :album :type]))))
+               (get-in schema [:objects :Track :fields :album :type]))))
       (testing "Datomic backref missing implies no backref"
         (is (nil? (get-in schema [:objects :Album :fields :artists :type]))))
       (testing "Datomic type override for graphql type"

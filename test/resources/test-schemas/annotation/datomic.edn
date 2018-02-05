@@ -60,7 +60,7 @@
    :db/id                          :artist/albums
    :catchpocket/lacinia-field-type :Album}
   {:db/id                               :album/tracks
-   :catchpocket/lacinia-field-type      :Tracks
+   :catchpocket/lacinia-field-type      :Track
    :catchpocket/lacinia-backref-name    :album
    :catchpocket/lacinia-backref-single? true}
   {:db/id                          :album/year

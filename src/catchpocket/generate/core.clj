@@ -47,7 +47,6 @@
                            (do
                              (log/infof "Overriding type '%s' with type '%s' for attribute '%s'"
                                         base-type datomic-override (:attribute/ident field))
-                             (log/spy field)
                              datomic-override)
                            base-type)
         primitive        (get datomic-to-lacinia field-type)]
@@ -144,9 +143,7 @@
   [ent-map config]
   (for [[to-type field-defs] ent-map
         field-def field-defs
-        :let [_                (when (:attribute/meta-backref-name field-def)
-                                 (log/spy field-def))
-              datomic-override (:attribute/meta-backref-name field-def)
+        :let [datomic-override (:attribute/meta-backref-name field-def)
               backref          (if datomic-override
                                  (do
                                    (log/warnf "datomic-override: %s"
@@ -154,7 +151,8 @@
                                    datomic-override)
                                  (:catchpocket/backref-name field-def))]
         :when backref
-        :let [from-type   (-> field-def :catchpocket/reference-to datomic/namespace-to-type)
+        :let [from-type   (or (-> field-def :catchpocket/reference-to datomic/namespace-to-type)
+                              (-> field-def :attribute/meta-lacinia-type))
               ident       (:attribute/ident field-def)
               datomic-ref (keyword (format "%s/_%s" (namespace ident) (name ident)))]]
     [from-type backref to-type datomic-ref (:attribute/component? field-def)]))
@@ -171,7 +169,6 @@
                :resolve     [:stillsuit/ref
                              #:stillsuit{:attribute    datomic-ref
                                          :lacinia-type plural-type}]
-
                :description (format "Back-reference for the `%s` datomic attribute" datomic-ref)})))
 
 (defn generate-edn [base-schema ent-map enums config]
