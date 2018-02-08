@@ -58,7 +58,10 @@ workflows:
   version: 2
   compile_test_deploy:
     jobs:
-      - dependencies
+      - dependencies:
+          filters:
+            tags:
+              only: /.*/
       - tests:
           requires:
             - dependencies
