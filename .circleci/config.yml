@@ -62,12 +62,21 @@ workflows:
       - tests:
           requires:
             - dependencies
+          filters:
+            tags:
+              only: /.*/
       - docs:
           requires:
             - dependencies
+          filters:
+            tags:
+              only: /.*/
+      # Only deploy stuff that is tagged
       - deploy:
           requires:
             - tests
           filters:
             tags:
               only: /^catchpocket-.*/
+            branches:
+              ignore: /.*/
