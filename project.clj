@@ -1,4 +1,4 @@
-(defproject com.workframe/catchpocket "0.1.0-SNAPSHOT"
+(defproject com.workframe/catchpocket "0.1.0"
   :description "datomic-to-lacinia schema extractor"
   :url "https://github.com/workframers/catchpocket"
   :pedantic? :warn
@@ -25,30 +25,55 @@
 
   :plugins [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]]
 
-  :repositories [["workframe-private" {:url     "s3p://deployment.workframe.com/maven/releases/"
-                                       :no-auth true}]]
+  :repositories [["workframe-private"
+                  {:url           "s3p://deployment.workframe.com/maven/releases/"
+                   :no-auth       true
+                   :sign-releases false}]]
 
   :test-selectors {:watch :watch}
 
   :codox {:metadata   {:doc/format :markdown}
           :themes     [:rdash]
-          :source-uri "https://github.com/workframers/stillsuit/blob/develop/{filepath}#L{line}"}
+          :source-uri "https://github.com/workframers/catchpocket/blob/master/{filepath}#L{line}"}
 
   :asciidoctor {:sources "doc/*.adoc"
                 :format  :html5
                 :to-dir  "target/manual"}
 
-  :profiles {:dev  {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
-                                   [jonase/eastwood "0.2.5"]
-                                   [com.jakemccrary/lein-test-refresh "0.22.0"]
-                                   [lein-cloverage "1.0.10"]
-                                   [lein-codox "0.10.3"]
-                                   [venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]
-                                   [lein-asciidoctor "0.1.14" :exclusions [org.slf4j/slf4j-api]]
-                                   [lein-ancient "0.6.15"
-                                    :exclusions [com.fasterxml.jackson.core/jackson-annotations
-                                                 com.fasterxml.jackson.core/jackson-databind
-                                                 com.fasterxml.jackson.core/jackson-core]]]
-                    :dependencies [[codox-theme-rdash "0.1.2"]]}
+  :profiles {:dev   {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
+                                    [jonase/eastwood "0.2.5"]
+                                    [com.jakemccrary/lein-test-refresh "0.22.0"]
+                                    [lein-cloverage "1.0.10"]
+                                    [lein-codox "0.10.3"]
+                                    [lein-shell "0.5.0"]
+                                    [lein-asciidoctor "0.1.14" :exclusions [org.slf4j/slf4j-api]]
+                                    [lein-ancient "0.6.15"
+                                     :exclusions [com.fasterxml.jackson.core/jackson-annotations
+                                                  com.fasterxml.jackson.core/jackson-databind
+                                                  com.fasterxml.jackson.core/jackson-core]]]
+                     :dependencies [[codox-theme-rdash "0.1.2"]]}
+             :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
+             :test  {:resource-paths ["test/resources"]}}
 
-             :test {:resource-paths ["test/resources"]}})
+  :release-tasks [;; Make sure we're up to date
+                  ["vcs" "assert-committed"]
+                  ["shell" "git" "checkout" "develop"]
+                  ["shell" "git" "pull"]
+                  ["shell" "git" "checkout" "master"]
+                  ["shell" "git" "pull"]
+                  ;; Merge develop into master
+                  ["shell" "git" "merge" "develop"]
+                  ;; Update version to non-snapshot version, commit change to master, tag
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag" "catchpocket-" "--no-sign"]
+                  ;; Merge master back into develop (we'll now have the non-SNAPSHOT version)
+                  ["shell" "git" "checkout" "develop"]
+                  ["shell" "git" "merge" "master"]
+                  ;; Bump up SNAPSHOT version in develop and commit
+                  ["change" "version" "leiningen.release/bump-version" "minor"]
+                  ["vcs" "commit"]
+                  ;; All done
+                  ["shell" "echo"]
+                  ["shell" "echo" "Release tagged in master; develop bumped to ${:version}."]
+                  ["shell" "echo" "To push it, run 'git push origin develop master --tags'"]])
