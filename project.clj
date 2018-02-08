@@ -3,7 +3,7 @@
   :url "https://github.com/workframers/catchpocket"
   :pedantic? :warn
   :license {:name "EPL"
-            :url  "http://www.eclipse.org/legal/epl-v10.html"}
+            :url  "http://www.eclipse.org/legal/epl-v20.html"}
 
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/core.async "0.4.474"]
@@ -23,12 +23,32 @@
 
   :aot [catchpocket.main]
 
-  :repositories [["workframe-private" {:url "s3p://deployment.workframe.com/maven/releases/"
+  :plugins [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]]
+
+  :repositories [["workframe-private" {:url     "s3p://deployment.workframe.com/maven/releases/"
                                        :no-auth true}]]
-  
-  :profiles {:dev {:plugins [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
-                             [jonase/eastwood "0.2.5"]
-                             [lein-ancient "0.6.15"
-                              :exclusions [com.fasterxml.jackson.core/jackson-annotations
-                                           com.fasterxml.jackson.core/jackson-databind
-                                           com.fasterxml.jackson.core/jackson-core]]]}})
+
+  :test-selectors {:watch :watch}
+
+  :codox {:metadata   {:doc/format :markdown}
+          :themes     [:rdash]
+          :source-uri "https://github.com/workframers/stillsuit/blob/develop/{filepath}#L{line}"}
+
+  :asciidoctor {:sources "doc/*.adoc"
+                :format  :html5
+                :to-dir  "target/manual"}
+
+  :profiles {:dev  {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
+                                   [jonase/eastwood "0.2.5"]
+                                   [com.jakemccrary/lein-test-refresh "0.22.0"]
+                                   [lein-cloverage "1.0.10"]
+                                   [lein-codox "0.10.3"]
+                                   [venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]
+                                   [lein-asciidoctor "0.1.14" :exclusions [org.slf4j/slf4j-api]]
+                                   [lein-ancient "0.6.15"
+                                    :exclusions [com.fasterxml.jackson.core/jackson-annotations
+                                                 com.fasterxml.jackson.core/jackson-databind
+                                                 com.fasterxml.jackson.core/jackson-core]]]
+                    :dependencies [[codox-theme-rdash "0.1.2"]]}
+
+             :test {:resource-paths ["test/resources"]}})
