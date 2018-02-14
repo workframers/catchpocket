@@ -46,8 +46,9 @@
 (defn lacinia-value-defs
   [enum-data]
   (for [{:catchpocket.enum/keys [value doc lacinia-name]} (::values enum-data)]
-    {:enum-value  lacinia-name
-     :description (enum-value-description doc value)}))
+    {:enum-value              lacinia-name
+     :stillsuit/datomic-value value
+     :description             (enum-value-description doc value)}))
 
 (defn generate-enum
   [enum-name enum-data]
@@ -99,6 +100,7 @@
         datomic-map (datomic-lacinia-map enum-info ::datomic)]
     {:catchpocket.enums/lacinia-defs  enum-defs
      :catchpocket.enums/attribute-map (attribute-to-enum-type enum-info)
+     ;; TODO: below thing is probably not needed any longer with the newer stillsuit enum stuff
      :stillsuit/enum-map              {:stillsuit/lacinia-to-datomic lacinia-map
                                        :stillsuit/datomic-to-lacinia datomic-map}}))
 

@@ -101,3 +101,4 @@ Licensed under the EPL 2.0, see LICENSE.txt. Copyright (c) 2018 Wiorkframe.
 - Security / predicates on attributes
 - Inference
 - Inject session (/logged-in user) API
+- Attach stillsuit and run queries
