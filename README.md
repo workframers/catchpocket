@@ -95,7 +95,7 @@ is stored.
 
 # License
 
-Licensed under the EPL 2.0, see LICENSE.txt. Copyright (c) 2018 Wiorkframe.
+Licensed under the EPL 2.0, see LICENSE.txt. Copyright (c) 2018 Workframe.
 
 # TODO:
 - Security / predicates on attributes
