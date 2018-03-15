@@ -53,8 +53,9 @@
                                      :exclusions [com.fasterxml.jackson.core/jackson-annotations
                                                   com.fasterxml.jackson.core/jackson-databind
                                                   com.fasterxml.jackson.core/jackson-core]]]
-                     :dependencies [[codox-theme-rdash "0.1.2"]]}
-             :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
+                     :dependencies [[codox-theme-rdash "0.1.2"]
+                                    [io.forward/yaml "1.0.7"]]}
+                    :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
              :test  {:resource-paths ["test/resources"]}}
 
   :release-tasks [;; Make sure we're up to date

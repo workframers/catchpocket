@@ -13,7 +13,7 @@
 ;; them out into a third library
 
 (def ^:private test-db-prefix "datomic:mem://catchpocket-test-")
-(def ^:private all-db-names [:music :capitalize :enums :annotation :rainbow])
+(def all-setup-names [:music :capitalize :enums :annotation :rainbow])
 (def ^:private db-store (atom {}))
 
 (defn- db-uri [db-name]
@@ -34,12 +34,12 @@
         conn))))
 
 (defn- setup-datomic []
-  (doseq [db-name all-db-names
+  (doseq [db-name all-setup-names
           :let [conn (provision-db db-name)]]
     (swap! db-store assoc db-name conn)))
 
 (defn- teardown-datomic []
-  (doseq [db-name all-db-names]
+  (doseq [db-name all-setup-names]
     (d/delete-database (db-uri db-name))
     (log/debugf "Deleted database %s" db-name)
     (swap! db-store dissoc db-name)))
@@ -58,10 +58,11 @@
 
 (defn- get-query-doc
   [db-name]
-  (->> db-name
-       name
-       (format "resources/test-schemas/%s/queries.edn")
-       su/load-edn-resource))
+  (some->> db-name
+           name
+           (format "resources/test-schemas/%s/queries.edn")
+           io/resource
+           su/load-edn-file))
 
 (defn- get-connection [db-name]
   (get @db-store db-name))
@@ -79,25 +80,25 @@
          conn   (get-connection setup-name)]
      (g/generate conn config))))
 
-(defn stillsuit
+(defn stillsuit-setup
   "Return a big map with a bunch of stillsuit stuff"
-  ([setup-name schema]
-   (stillsuit setup-name schema nil))
-  ([setup-name schema resolver-map]
-   (stillsuit setup-name schema resolver-map nil))
-  ([setup-name schema resolver-map overrides]
+  ([setup-name]
+   (stillsuit-setup setup-name nil))
+  ([setup-name {:keys [stillsuit-config catchpocket-overrides resolver-map setup-overrides]}]
    (let [cp-config (catchpocket-config setup-name)
-         config    {}
-         queries   (get-query-doc setup-name)
-         decorated (stillsuit/decorate #:stillsuit{:schema     schema
-                                                   :config     config
-                                                   :connection (get-connection setup-name)
-                                                   :resolvers  resolver-map})]
-     (su/deep-map-merge {::context   (:stillsuit/app-context decorated)
-                         ::cp-config cp-config
-                         ::schema    (:stillsuit/schema decorated)
-                         ::query-doc queries}
-                        overrides))))
+         schema    (generate-schema setup-name catchpocket-overrides)
+         queries   (get-query-doc setup-name)]
+     (when queries
+       (let [decorated (stillsuit/decorate #:stillsuit{:schema     schema
+                                                       :config     stillsuit-config
+                                                       :connection (get-connection setup-name)
+                                                       :resolvers  resolver-map})]
+         (su/deep-map-merge {::context   (:stillsuit/app-context decorated)
+                             ::cp-config cp-config
+                             ::config    stillsuit-config
+                             ::schema    (:stillsuit/schema decorated)
+                             ::query-doc queries}
+                            setup-overrides))))))
 
 (defn stillsuit-query
   "Given a setup map as returned by (stillsuit), execute the query defined in the associated YAML"
