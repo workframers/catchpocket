@@ -89,16 +89,24 @@
          schema    (generate-schema setup-name catchpocket-overrides)
          queries   (get-query-doc setup-name)]
      (when queries
-       (let [decorated (stillsuit/decorate #:stillsuit{:schema     schema
-                                                       :config     stillsuit-config
-                                                       :connection (get-connection setup-name)
-                                                       :resolvers  resolver-map})]
-         (su/deep-map-merge {::context   (:stillsuit/app-context decorated)
-                             ::cp-config cp-config
-                             ::config    stillsuit-config
-                             ::schema    (:stillsuit/schema decorated)
-                             ::query-doc queries}
-                            setup-overrides))))))
+       (try
+         (let [decorated (stillsuit/decorate #:stillsuit{:schema     schema
+                                                         :config     stillsuit-config
+                                                         :connection (get-connection setup-name)
+                                                         :resolvers  resolver-map})]
+           (su/deep-map-merge {::context   (:stillsuit/app-context decorated)
+                               ::cp-config cp-config
+                               ::config    stillsuit-config
+                               ::schema    (:stillsuit/schema decorated)
+                               ::query-doc queries}
+                              setup-overrides))
+         (catch Exception e
+           (log/errorf "Failed to decorate stillsuit setup %s!" setup-name)
+           (log/spy :error (ex-data e))
+           (log/spy stillsuit-config)
+           (log/spy schema)
+           (log/error e)
+           (test/is (= setup-name false)))))))) ; fail test
 
 (defn stillsuit-query
   "Given a setup map as returned by (stillsuit), execute the query defined in the associated YAML"
@@ -129,10 +137,14 @@
             :let [expected (get-in setup [::query-doc qname :response])]
             :when [expected]]
       (test/testing (str qname)
-        (let [result     (stillsuit-query setup qname)
-              simplified (su/simplify result)]
-          (test/is (= (approx-floats expected)
-                      (approx-floats simplified))))))))
+        (try
+          (let [result     (stillsuit-query setup qname)
+                simplified (su/simplify result)]
+            (test/is (= (approx-floats expected)
+                        (approx-floats simplified))))
+          (catch Exception e
+            (log/errorf e "Exception running query %s!" qname)
+            (test/is (= qname false)))))))) ; fail test
 
 (def once (test/join-fixtures [datomic-fixture]))
 

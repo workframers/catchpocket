@@ -1,0 +1,13 @@
+{:test-get-artist
+ {:query
+  "
+  query getArtistById($id: ID) {
+    Artist(id: $id) {
+      name
+    }
+  }
+  "
+  :variables
+  {:id "1"}
+  :expected
+  {:data {:getQuery {:Artist {:id "1"}}}}}}
