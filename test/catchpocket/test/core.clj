@@ -7,7 +7,7 @@
 (use-fixtures :once test-util/once)
 
 (deftest test-music-generation
-  (let [schema (test-util/load-setup :music)]
+  (let [schema (test-util/generate-schema :music)]
     (is (some? (:catchpocket/generated-at schema)))
     (is (some? (:catchpocket/version schema)))
     (is (= #{:Artist :Album :Track}
@@ -17,7 +17,7 @@
 
 (deftest test-default-case-conversion
   (testing "default case conversion"
-    (let [schema (test-util/load-setup :capitalize)]
+    (let [schema (test-util/generate-schema :capitalize)]
       (is (= #{:Secret_Agent :Country}
              (some-> schema :objects keys set)))
       (is (= #{:name :country_of_origin :db_id :hashed_password}
@@ -29,7 +29,7 @@
   (testing "sanke_case conversion"
     (let [config {:catchpocket/names {:fields  :snake_case
                                       :objects :Snake_Case}}
-          schema (test-util/load-setup :capitalize config)]
+          schema (test-util/generate-schema :capitalize config)]
       (is (= #{:Secret_Agent :Country}
              (some-> schema :objects keys set)))
       (is (= #{:name :country_of_origin :db_id :hashed_password}
@@ -41,7 +41,7 @@
   (testing "camelCase conversion"
     (let [config {:catchpocket/names {:fields  :camelCase
                                       :objects :CamelCase}}
-          schema (test-util/load-setup :capitalize config)]
+          schema (test-util/generate-schema :capitalize config)]
       (is (= #{:SecretAgent :Country}
              (some-> schema :objects keys set)))
 
@@ -54,7 +54,7 @@
 (deftest test-skip
   (testing "skip attributes"
     (let [config {:catchpocket/skip #{:secret-agent/hashed-password}}
-          schema (test-util/load-setup :capitalize config)]
+          schema (test-util/generate-schema :capitalize config)]
       (is (= #{:name :country_of_origin :db_id}
              (some-> schema :objects :Secret_Agent :fields keys set))))))
 
@@ -78,7 +78,7 @@
 
 (deftest test-enum-keyword
   (testing "enum generation for keywords"
-    (let [schema           (test-util/load-setup :enums)
+    (let [schema           (test-util/generate-schema :enums)
           expected-enum    #{:BIPED :BRACHIATOR :QUADROPED}
           expected-datomic #{:movement/biped :movement/brachiator :movement/quadroped}
           obj-type         :Animal_Keyword
@@ -93,7 +93,7 @@
 
 (deftest test-enum-ref
   (testing "enum generation for keywords"
-    (let [schema           (test-util/load-setup :enums)
+    (let [schema           (test-util/generate-schema :enums)
           expected-enum    #{:BIPED :BRACHIATOR :QUADROPED}
           expected-datomic #{:movement/biped :movement/brachiator :movement/quadroped}
           obj-type         :Animal_Keyword
@@ -107,7 +107,7 @@
                       ::enum-type enum-type}))))
 
 (deftest test-annotation
-    (let [schema (test-util/load-setup :annotation)]
+    (let [schema (test-util/generate-schema :annotation)]
       (testing "sanity check"
         (is (= #{:Artist :Album :Track}
                (some-> schema :objects keys set))))
@@ -127,7 +127,7 @@
                (get-in schema [:objects :Track :fields :position :type]))))))
 
 (deftest test-field-types
-    (let [schema (test-util/load-setup :rainbow)
+    (let [schema (test-util/generate-schema :rainbow)
           obj    (some-> schema :objects :Rainbow :fields)]
       (testing "sanity check"
         (is (= #{:Rainbow} (some-> schema :objects keys set))))
