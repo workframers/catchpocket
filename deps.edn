@@ -4,6 +4,7 @@
   fipp                                      {:mvn/version "0.6.12"}
   com.taoensso/timbre                       {:mvn/version "4.10.0"}
   funcool/cuerdas                           {:mvn/version "2.0.5"}
+  zprint                                    {:mvn/version "0.4.6"}
   org.clojure/tools.logging                 {:mvn/version "0.4.0"}
   org.apache.logging.log4j/log4j-core       {:mvn/version "2.10.0"}
   org.apache.logging.log4j/log4j-slf4j-impl {:mvn/version "2.10.0"}}

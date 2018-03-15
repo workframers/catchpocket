@@ -57,7 +57,7 @@
     (try
       (let [config (cf/construct-config config-file options)]
         (case action
-          ::generate (g/generate-and-write config)
+          ::generate (g/generate-and-write! config)
           (exit! 1 (format "Unknown action %s!" action))))
       (catch Exception e
         (when-not (-> e ex-data :die?)

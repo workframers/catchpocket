@@ -1,11 +1,9 @@
 (ns catchpocket.test-util
   (:require [clojure.test :as test]
-            [catchpocket.lib.util :as util]                 ; TODO: move to stillsuit
             [datomic.api :as d]
             [clojure.tools.logging :as log]
             [catchpocket.generate.core :as g]
-            [clojure.java.io :as io]
-            [catchpocket.lib.config :as cf]))
+            [stillsuit.lib.util :as su]))
 
 ;; There's a bunch of redundancy between this and the stillsuit tests; we should probably break
 ;; them out into a third library
@@ -21,7 +19,7 @@
   [db-name]
   (let [uri  (db-uri db-name)
         path (format "resources/test-schemas/%s/datomic.edn" (name db-name))
-        txes (util/load-edn (io/resource path))]
+        txes (su/load-edn-resource path)]
     (if-not (d/create-database uri)
       (log/errorf "Couldn't create database %s!" uri)
       (let [conn (d/connect uri)]
@@ -52,8 +50,7 @@
   (->> setup-name
        name
        (format "resources/test-schemas/%s/catchpocket.edn")
-       io/resource
-       util/load-edn))
+       su/load-edn-resource))
 
 (defn- get-connection [db-name]
   (get @db-store db-name))
@@ -67,7 +64,7 @@
   ([setup-name override-options]
    (let [config (-> (get-config setup-name)
                     (assoc :catchpocket/datomic-uri (db-uri setup-name))
-                    (util/deep-map-merge override-options))
+                    (su/deep-map-merge override-options))
          conn   (get-connection setup-name)]
      (g/generate conn config))))
 
