@@ -6,11 +6,12 @@
 (use-fixtures :once tu/once)
 
 (deftest ^:watch test-music-generation
-  (let [schema (tu/generate-schema :music {})]
-    (log/spy (some-> schema :queries))
-    ;(log/spy (some-> schema :objects :Artist))
-    (is (= #{:Artist :Album :Track}
-           (some-> schema :queries keys set)))
-    (is (= :stillsuit/ref
-           (some-> schema :objects :Artist :fields :albums :resolve first)))))
-
+  (testing "Vanilla query generation"
+    (let [schema (tu/generate-schema :music)]
+      (is (= #{:Artist :Album :Track}
+             (some-> schema :queries keys set)))))
+  (testing "camelCase query names"
+    (let [config {:catchpocket/names {:queries :camelCase}}
+          schema (tu/generate-schema :music config)]
+      (is (= #{:artist :album :track}
+             (some-> schema :queries keys set))))))

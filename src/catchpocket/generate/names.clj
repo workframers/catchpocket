@@ -55,9 +55,8 @@
   "Given a "
   [kw {:keys [:catchpocket/names] :as config}]
   (let [query-cf (get names :queries :Snake_Case)]
-    (log/spy [kw query-cf])
     (cond
-      (all-name-styles kw)
+      (all-name-styles query-cf)
       (keyword-part->type kw query-cf)
 
       (ifn? query-cf)

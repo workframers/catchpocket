@@ -42,7 +42,7 @@
                 :format  :html5
                 :to-dir  "target/manual"}
 
-  :aliases {"refresh" ["trampoline" "with-profile" "+ultra" "test-refresh"]}
+  :aliases {"refresh" ["with-profile" "+ultra" "test-refresh"]}
 
   :profiles {:dev   {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
                                     [jonase/eastwood "0.2.5"]
