@@ -2,10 +2,14 @@
   (:require [cuerdas.core :as str]
             [clojure.tools.logging :as log]))
 
+(def all-name-styles
+  "Set of every possible `style` value for the `(keyword-part->type)` function"
+  #{:snake_case :Snake_Case :SNAKE_CASE :CamelCase :camelCase})
+
 (defn keyword-part->type
   "Transform a keyword from sausage-case to another style."
   [kw style]
-  (if-not (#{:snake_case :Snake_Case :SNAKE_CASE :CamelCase :camelCase} style)
+  (if-not (all-name-styles style)
     (do
       (log/errorf "Unknown keyword-conversion style %s, returning untransformed value '%s'!"
                   style kw)
@@ -46,6 +50,23 @@
   (keyword-part->type
     (name attribute-kw)
     (get names :fields :snake_case)))
+
+(defn query-name
+  "Given a "
+  [kw {:keys [:catchpocket/names] :as config}]
+  (let [query-cf (get names :queries :Snake_Case)]
+    (log/spy [kw query-cf])
+    (cond
+      (all-name-styles kw)
+      (keyword-part->type kw query-cf)
+
+      (ifn? query-cf)
+      (query-cf kw)
+
+      :default
+      (do
+        (log/errorf "Unknown query-name parameter %s, returning original value %s" query-cf kw)
+        kw))))
 
 (defn db-id-name
   "Return the lacinia name for the :db/id datomic field, which is used in the interface definition

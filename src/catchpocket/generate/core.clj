@@ -186,6 +186,7 @@
      base-schema
      {:objects                  decorated
       :enums                    (:catchpocket.enums/lacinia-defs enums)
+      :hmm/objects                 objects
       :stillsuit/enum-map       (:stillsuit/enum-map enums)
       :catchpocket/generated-at (util/timestamp)
       :stillsuit/config         {:stillsuit/db-id-name (names/db-id-name config)}

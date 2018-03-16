@@ -1,6 +1,9 @@
 (ns catchpocket.test.names
   (:require [clojure.test :refer :all]
-            [catchpocket.generate.names :as names]))
+            [catchpocket.generate.names :as names]
+            [catchpocket.test-util :as tu]))
+
+(use-fixtures :once tu/once)
 
 (defn- lacinia-field [kw style]
   (names/lacinia-field-name kw {:catchpocket/names {:fields style}}))
@@ -35,3 +38,40 @@
       (is (= (lacinia-field mult :camelCase) :hasSomeWords))
       (is (= (lacinia-field mult :CamelCase) :HasSomeWords))
       (is (= (lacinia-field mult :SNAKE_CASE) :HAS_SOME_WORDS)))))
+
+(deftest test-default-case-conversion
+  (testing "default case conversion"
+    (let [schema (tu/generate-schema :capitalize)]
+      (is (= #{:Secret_Agent :Country}
+             (some-> schema :objects keys set)))
+      (is (= #{:name :country_of_origin :db_id :hashed_password}
+             (some-> schema :objects :Secret_Agent :fields keys set)))
+      (is (= #{:name :land_mass :db_id :secret_agents}
+             (some-> schema :objects :Country :fields keys set))))))
+
+(deftest test-snake-conversion
+  (testing "sanke_case conversion"
+    (let [config {:catchpocket/names {:fields  :snake_case
+                                      :objects :Snake_Case}}
+          schema (tu/generate-schema :capitalize config)]
+      (is (= #{:Secret_Agent :Country}
+             (some-> schema :objects keys set)))
+      (is (= #{:name :country_of_origin :db_id :hashed_password}
+             (some-> schema :objects :Secret_Agent :fields keys set)))
+      (is (= #{:name :land_mass :db_id :secret_agents}
+             (some-> schema :objects :Country :fields keys set))))))
+
+(deftest test-camel-conversion
+  (testing "camelCase conversion"
+    (let [config {:catchpocket/names {:fields  :camelCase
+                                      :objects :CamelCase}}
+          schema (tu/generate-schema :capitalize config)]
+      (is (= #{:SecretAgent :Country}
+             (some-> schema :objects keys set)))
+
+      (is (= #{:name :countryOfOrigin :dbId :hashedPassword}
+             (some-> schema :objects :SecretAgent :fields keys set)))
+      (is (= #{:name :landMass :dbId :secret_agents}
+             ;; Note: :secret_agents is not capitalized as it comes from the catchpocket config
+             (some-> schema :objects :Country :fields keys set))))))
+
