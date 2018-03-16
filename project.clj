@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/core.async "0.4.474"]
                  [org.clojure/tools.cli "0.3.5"]
-                 [com.workframe/stillsuit "0.5.0"]
+                 [com.workframe/stillsuit "0.6.0"]
                  [fipp "0.6.12"]
                  [zprint "0.4.6"]
                  [funcool/cuerdas "2.0.5"]
@@ -54,7 +54,7 @@
                                                   com.fasterxml.jackson.core/jackson-databind
                                                   com.fasterxml.jackson.core/jackson-core]]]
                      :dependencies [[codox-theme-rdash "0.1.2"]
-                                    [io.forward/yaml "1.0.7"]]}
+                                    [io.forward/yaml "1.0.7" :exclusions [org.flatland/ordered]]]}
                     :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
              :test  {:resource-paths ["test/resources"]}}
 

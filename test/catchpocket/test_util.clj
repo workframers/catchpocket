@@ -98,6 +98,7 @@
                                ::cp-config cp-config
                                ::config    stillsuit-config
                                ::schema    (:stillsuit/schema decorated)
+                               ::decorated decorated
                                ::query-doc queries}
                               setup-overrides))
          (catch Exception e
@@ -109,12 +110,19 @@
            (test/is (= setup-name false)))))))) ; fail test
 
 (defn stillsuit-query
+  "Execute the given graphql query based on results returned from (stillsuit-setup)"
+  ([setup query]
+   (stillsuit-query setup query nil))
+  ([{::keys [context schema]} query variables]
+   (lacinia/execute schema query variables context)))
+
+(defn- stillsuit-edn-query
   "Given a setup map as returned by (stillsuit), execute the query defined in the associated YAML"
-  [{::keys [context schema query-doc]} query-name]
-  (let [query (get-in query-doc [query-name :query])
-        vars  (get-in query-doc [query-name :variables])]
+  [setup query-name]
+  (let [query (get-in setup [::query-doc query-name :query])
+        vars  (get-in setup [::query-doc query-name :variables])]
     (test/is (some? query))
-    (lacinia/execute schema query vars context)))
+    (stillsuit-query setup query vars)))
 
 (defn approx-floats
   "This function is here to aid testing floating-point numbers. It walks the data structure provided
@@ -128,7 +136,7 @@
                       item))
                   data)))
 
-(defn verify-queries!
+(defn verify-queries-from-edn!
   "Given a setup map returned by load-setup, run through every query in the queries.yaml file,
   executing each one and asserting that its output is identical to the expected output, if any."
   [setup]
@@ -138,7 +146,7 @@
             :when [expected]]
       (test/testing (str qname)
         (try
-          (let [result     (stillsuit-query setup qname)
+          (let [result     (stillsuit-edn-query setup qname)
                 simplified (su/simplify result)]
             (test/is (= (approx-floats expected)
                         (approx-floats simplified))))
