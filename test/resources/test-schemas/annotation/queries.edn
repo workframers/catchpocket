@@ -10,4 +10,4 @@
   :variables
   {:id "1"}
   :expected
-  {:data {:getQuery {:Artist {:id "1"}}}}}}
+  {:data {:getQuery {:Artist {:name "1"}}}}}}

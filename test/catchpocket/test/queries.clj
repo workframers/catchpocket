@@ -4,7 +4,7 @@
 
 (use-fixtures :once tu/once)
 
-(deftest ^:watch run-all-queries
+(deftest run-all-queries
   (doseq [setup-name tu/all-setup-names]
     (testing (format "Running queries for %s: " setup-name)
       (let [setup (tu/stillsuit-setup setup-name)]

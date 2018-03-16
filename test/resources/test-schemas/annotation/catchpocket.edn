@@ -1,1 +1,4 @@
-{}
+{:stillsuit/config
+ {:stillsuit/db-id-name :db_id}
+ :catchpocket/query-names
+ {}}

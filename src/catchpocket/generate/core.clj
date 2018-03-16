@@ -188,6 +188,7 @@
       :enums                    (:catchpocket.enums/lacinia-defs enums)
       :stillsuit/enum-map       (:stillsuit/enum-map enums)
       :catchpocket/generated-at (util/timestamp)
+      :stillsuit/config         {:stillsuit/db-id-name (names/db-id-name config)}
       :catchpocket/version      (:catchpocket/version config)})))
 
 (defn construct-config
