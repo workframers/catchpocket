@@ -142,7 +142,7 @@
   [setup]
   (test/testing "Verifying query response"
     (doseq [qname (-> setup ::query-doc keys sort)
-            :let [expected (get-in setup [::query-doc qname :response])]
+            :let [expected (get-in setup [::query-doc qname :expected])]
             :when [expected]]
       (test/testing (str qname)
         (try
