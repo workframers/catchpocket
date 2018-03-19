@@ -6,7 +6,9 @@
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [fipp.edn :as fipp]
+            [zprint.core :as zp]
             [catchpocket.lib.util :as util]
+            [stillsuit.lib.util :as su]
             [clojure.string :as str]
             [catchpocket.generate.names :as names]))
 
@@ -40,6 +42,11 @@
                  datomic-entity-type)
       datomic-entity-type)))
 
+(defn- get-instant-type [field config]
+  (if-let [instant-type (:catchpocket/instant-type config)]
+    instant-type
+    :JavaDate))
+
 (defn- get-field-type [field config]
   (let [base-type        (:attribute/field-type field)
         datomic-override (:attribute/meta-lacinia-type field)
@@ -51,9 +58,8 @@
                            base-type)
         primitive        (get datomic-to-lacinia field-type)]
     (cond
-      ;; ASSUMPTION
-      (= (:attribute/unique field) :db.unique/identity)
-      'ID
+      (= primitive ::instant)
+      (get-instant-type field config)
 
       (= primitive ::ref)
       (get-ref-type field config)
@@ -78,12 +84,12 @@
                        lacinia-type)]
     (when lacinia-type
       (merge
-        {:type    full-type
-         :resolve [:stillsuit/ref
-                   #:stillsuit{:attribute    (:attribute/ident field)
-                               :lacinia-type lacinia-type}]}
-        (when doc
-          {:description doc})))))
+       {:type    full-type
+        :resolve [:stillsuit/ref
+                  #:stillsuit{:attribute    (:attribute/ident field)
+                              :lacinia-type lacinia-type}]}
+       (when doc
+         {:description doc})))))
 
 (defn- make-enum-field [field enum-type enums config]
   (let [{:attribute/keys [cardinality doc ident]} field
@@ -92,12 +98,12 @@
                     enum-type)]
     (log/tracef "Using enum type %s for field %s" full-type ident)
     (merge
-      {:type    full-type
-       :resolve [:stillsuit/enum
-                 #:stillsuit{:attribute    (:attribute/ident field)
-                             :lacinia-type enum-type}]}
-      (when doc
-        {:description doc}))))
+     {:type    full-type
+      :resolve [:stillsuit/enum
+                #:stillsuit{:attribute    (:attribute/ident field)
+                            :lacinia-type enum-type}]}
+     (when doc
+       {:description doc}))))
 
 (defn- assoc-db-id [field-def config]
   (assoc field-def
@@ -176,39 +182,45 @@
   (let [objects   (create-objects ent-map enums config)
         backrefs  (find-backrefs ent-map config)
         decorated (reduce (partial add-backref config) objects backrefs)]
-    (util/deep-map-merge
-      base-schema
-      {:objects                  decorated
-       :enums                    (:catchpocket.enums/lacinia-defs enums)
-       :stillsuit/enum-map       (:stillsuit/enum-map enums)
-       :catchpocket/generated-at (util/timestamp)
-       :catchpocket/version      (:catchpocket/version config)})))
+    (su/deep-map-merge
+     base-schema
+     {:objects                  decorated
+      :enums                    (:catchpocket.enums/lacinia-defs enums)
+      :stillsuit/enum-map       (:stillsuit/enum-map enums)
+      :catchpocket/generated-at (util/timestamp)
+      :stillsuit/config         {:stillsuit/db-id-name (names/db-id-name config)}
+      :catchpocket/version      (:catchpocket/version config)})))
 
 (defn construct-config
   ([config]
    (construct-config config nil))
   ([config override]
-   (let [defaults (util/load-edn (io/resource default-config))
-         merged   (util/deep-map-merge config defaults override)]
+   (let [defaults (su/load-edn-resource default-config)
+         merged   (su/deep-map-merge config defaults override)]
      merged)))
 
 (defn generate [conn base-config]
   (let [db       (d/db conn)
         config   (construct-config base-config)
-        base-edn (util/load-edn (io/resource "catchpocket/lacinia-base.edn"))
+        base-edn (su/load-edn-resource "catchpocket/lacinia-base.edn")
         ent-map  (datomic/scan db config)
         enums    (enums/generate-enums db ent-map config)
         objects  (generate-edn base-edn ent-map enums config)
         schema   (queries/attach-queries objects ent-map config)]
     schema))
 
+(def zprint-config {:map {:comma?   false
+                          :sort?    true
+                          :indent   0
+                          :justify? true}})
+
 (defn- write-file! [schema config]
   (let [filename (:catchpocket/schema-file config)]
     (io/make-parents filename)
-    (spit filename (with-out-str (fipp/pprint schema)))
-    (log/infof "Saved schema to %s" filename)))
+    (log/infof "Saving schema to %s..." filename)
+    (spit filename (zp/zprint-str schema 120 zprint-config))))
 
-(defn generate-and-write [{:keys [:catchpocket/datomic-uri] :as config}]
+(defn generate-and-write! [{:keys [:catchpocket/datomic-uri] :as config}]
   (log/infof "Connecting to %s..." datomic-uri)
   (let [conn      (d/connect datomic-uri)
         generated (generate conn config)]

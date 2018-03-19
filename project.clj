@@ -8,7 +8,9 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/core.async "0.4.474"]
                  [org.clojure/tools.cli "0.3.5"]
+                 [com.workframe/stillsuit "0.6.0"]
                  [fipp "0.6.12"]
+                 [zprint "0.4.6"]
                  [funcool/cuerdas "2.0.5"]
                  [com.datomic/datomic-pro "0.9.5656" :scope "provided"]
                  [org.clojure/tools.logging "0.4.0"]
@@ -40,6 +42,8 @@
                 :format  :html5
                 :to-dir  "target/manual"}
 
+  :aliases {"refresh" ["with-profile" "+ultra" "test-refresh"]}
+
   :profiles {:dev   {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
                                     [jonase/eastwood "0.2.5"]
                                     [com.jakemccrary/lein-test-refresh "0.22.0"]
@@ -51,8 +55,9 @@
                                      :exclusions [com.fasterxml.jackson.core/jackson-annotations
                                                   com.fasterxml.jackson.core/jackson-databind
                                                   com.fasterxml.jackson.core/jackson-core]]]
-                     :dependencies [[codox-theme-rdash "0.1.2"]]}
-             :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
+                     :dependencies [[codox-theme-rdash "0.1.2"]
+                                    [io.forward/yaml "1.0.7" :exclusions [org.flatland/ordered]]]}
+                    :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
              :test  {:resource-paths ["test/resources"]}}
 
   :release-tasks [;; Make sure we're up to date
