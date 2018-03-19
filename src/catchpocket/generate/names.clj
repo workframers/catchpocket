@@ -54,7 +54,8 @@
 (defn query-name
   "Given a "
   [kw {:keys [:catchpocket/names] :as config}]
-  (let [query-cf (get names :queries :Snake_Case)]
+  (let [obj-style (get names :objects :Snake_Case)
+        query-cf  (get names :queries obj-style)]
     (cond
       (all-name-styles query-cf)
       (keyword-part->type kw query-cf)

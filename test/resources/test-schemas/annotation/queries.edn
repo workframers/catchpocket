@@ -1,7 +1,7 @@
 {:test-get-artist
  {:query
   "
-  query getArtistById($id: ID) {
+  query getArtistById($id: JavaLong!) {
     Artist(id: $id) {
       name
     }
@@ -10,4 +10,4 @@
   :variables
   {:id "1"}
   :expected
-  {:data {:getQuery {:Artist {:name "1"}}}}}}
+  {:data {:Artist {:name "Crass"}}}}}

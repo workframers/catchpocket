@@ -5,20 +5,34 @@
 
 (use-fixtures :once tu/once)
 
-(deftest test-query-generation
+(deftest ^:watch test-query-generation
   (testing "Vanilla query generation"
     (let [schema (tu/generate-schema :capitalize)]
       (is (= #{:Country :Secret_Agent}
              (some-> schema :queries keys set)))))
   (testing "camelCase query names"
     (let [config {:catchpocket/names {:queries :camelCase}}
+          schema (tu/generate-schema :music config)]
+      (is (= #{:artist :album :track}
+             (some-> schema :queries keys set)))))
+  (testing "Vanilla query names"
+    (let [schema (tu/generate-schema :capitalize)]
+      (is (= #{:Country :Secret_Agent}
+             (some-> schema :queries keys set)))))
+  (testing "Fallback to type name"
+    (let [config {:catchpocket/names {:objects :CamelCase}}
           schema (tu/generate-schema :capitalize config)]
-      (is (= #{:country :secretAgent}
+      (is (= #{:Country :SecretAgent}
              (some-> schema :queries keys set)))))
   (testing "CamelCase query names"
     (let [config {:catchpocket/names {:queries :CamelCase}}
           schema (tu/generate-schema :capitalize config)]
       (is (= #{:Country :SecretAgent}
+             (some-> schema :queries keys set)))))
+  (testing "camelCase query names"
+    (let [config {:catchpocket/names {:queries :camelCase}}
+          schema (tu/generate-schema :capitalize config)]
+      (is (= #{:country :secretAgent}
              (some-> schema :queries keys set))))))
 
 (deftest test-query-whitelist-blacklist
