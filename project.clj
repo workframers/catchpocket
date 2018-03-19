@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/core.async "0.4.474"]
                  [org.clojure/tools.cli "0.3.5"]
-                 [com.workframe/stillsuit "0.6.0"]
+                 [com.workframe/stillsuit "0.7.0"]
                  [fipp "0.6.12"]
                  [zprint "0.4.6"]
                  [funcool/cuerdas "2.0.5"]
