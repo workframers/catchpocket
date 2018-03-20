@@ -45,7 +45,7 @@
 (defn- get-instant-type [field config]
   (if-let [instant-type (:catchpocket/instant-type config)]
     instant-type
-    :JavaDate))
+    :EpochMillisecs))
 
 (defn- get-field-type [field config]
   (let [base-type        (:attribute/field-type field)

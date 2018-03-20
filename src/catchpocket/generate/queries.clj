@@ -23,6 +23,7 @@
         query-defs (for [[parent-type attr-set] entity-map
                          attr-info attr-set
                          :when (:attribute/unique attr-info)
+                         :when (not= (:attribute/field-type attr-info) :db.type/ref)
                          :let [id         (:attribute/lacinia-name attr-info)
                                attr-ident (:attribute/ident attr-info)
                                field-type (get-in schema [:objects parent-type :fields id :type])

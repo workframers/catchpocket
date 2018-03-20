@@ -10,12 +10,12 @@
                  [org.clojure/tools.cli "0.3.5"]
                  [com.workframe/stillsuit "0.7.0"]
                  [fipp "0.6.12"]
-                 [zprint "0.4.6"]
+                 [zprint "0.4.7"]
                  [funcool/cuerdas "2.0.5"]
                  [com.datomic/datomic-pro "0.9.5656" :scope "provided"]
                  [org.clojure/tools.logging "0.4.0"]
-                 [org.apache.logging.log4j/log4j-core "2.10.0"]
-                 [org.apache.logging.log4j/log4j-slf4j-impl "2.10.0"]]
+                 [org.apache.logging.log4j/log4j-core "2.11.0"]
+                 [org.apache.logging.log4j/log4j-slf4j-impl "2.11.0"]]
 
   :min-lein-version "2.8.1"
 
@@ -42,7 +42,8 @@
                 :format  :html5
                 :to-dir  "target/manual"}
 
-  :aliases {"refresh" ["with-profile" "+ultra" "test-refresh"]}
+  :aliases {"refresh" ["with-profile" "+ultra" "test-refresh"]
+            "preview" ["with-profile" "+test" "run" "-m" "catchpocket.preview"]}
 
   :profiles {:dev   {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
                                     [jonase/eastwood "0.2.5"]
@@ -56,6 +57,7 @@
                                                   com.fasterxml.jackson.core/jackson-databind
                                                   com.fasterxml.jackson.core/jackson-core]]]
                      :dependencies [[codox-theme-rdash "0.1.2"]
+                                    [com.walmartlabs/lacinia-pedestal "0.7.0"]
                                     [io.forward/yaml "1.0.7" :exclusions [org.flatland/ordered]]]}
                     :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
              :test  {:resource-paths ["test/resources"]}}
