@@ -96,8 +96,8 @@
 (defn enum-scan
   "Given a set of attributes, scan the database to produce the set of all of their values.
   This function works for either :db/ident enum references or keywords.
-  Return a seq of {::value :foo/bar ::doc \"docstring\"} maps, where ::doc is the docstring
-  for enum references."
+  Return a seq of {::datomic-value :foo/bar ::attribute :x/foo ::description \"docstring\"}
+  maps, where :description is the docstring for enum references."
   [db attributes]
   (let [vals (d/q '[:find ?value ?doc
                     :in $ [?attribute ...]
@@ -106,20 +106,22 @@
                     (or-join [?v ?doc ?value]
                              ;; Ident enum
                              (and
-                               [(datomic.api/entid $ ?v) ?v-id]
-                               [?v-id :db/ident ?value]
-                               [(get-else $ ?v-id :db/doc :none) ?doc])
+                              [(datomic.api/entid $ ?v) ?v-id]
+                              [?v-id :db/ident ?value]
+                              [(get-else $ ?v-id :db/doc :none) ?doc])
                              (and
-                               [(keyword? ?v)]
-                               [(identity ?v) ?value]
-                               [(ground :none) ?doc]))]
+                              [(keyword? ?v)]
+                              [(identity ?v) ?value]
+                              [(ground :none) ?doc]))]
                   db attributes)]
     (log/infof "Found %d possible enum values for attribute%s %s."
                (count vals)
                (if (> (count attributes) 1) "s" "")
                (util/oxford attributes))
-    (for [[value doc] vals]
+    (for [[value doc] vals
+          attribute   attributes]
       (merge
-        {:catchpocket.enum/value value}
-        (when (not= doc :none)
-          {:catchpocket.enum/doc doc})))))
+       {::datomic-value value
+        ::attribute     attribute}
+       (when (not= doc :none)
+         {::description doc})))))

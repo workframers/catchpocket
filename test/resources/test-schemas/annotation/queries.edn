@@ -10,4 +10,17 @@
   :variables
   {:id "1"}
   :expected
-  {:data {:Artist {:name "Crass"}}}}}
+  {:data {:Artist {:name "Crass"}}}}
+ :test-nil-result
+ {:query
+  "
+  query getArtistById($id: JavaLong!) {
+    Artist(id: $id) {
+      name
+    }
+  }
+  "
+  :variables
+  {:id "-666"}
+  :expected
+  {:data {:Artist nil}}}}

@@ -102,3 +102,4 @@ Licensed under the EPL 2.0, see LICENSE.txt. Copyright (c) 2018 Workframe.
 - Inference
 - Inject session (/logged-in user) API
 - Attach stillsuit and run queries
+- Handle empty enum scans correctly (currently breaks lacinia spec)

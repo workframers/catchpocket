@@ -51,6 +51,12 @@
     (name attribute-kw)
     (get names :fields :snake_case)))
 
+(defn enum-value-name
+  [datomic-kw {:keys [:catchpocket/names] :as config}]
+  (keyword-part->type
+    (name datomic-kw)
+    (get names :enums :SNAKE_CASE)))
+
 (defn query-name
   "Given a "
   [kw {:keys [:catchpocket/names] :as config}]

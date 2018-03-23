@@ -25,9 +25,13 @@
       :else       (str (str/join ", " h) ", and " end))))
 
 (defn plural
-  "Return '' if the supplied seq has a single element, else 's'."
-  [strs]
-  (if (= (count strs) 1)
-    ""
-    "s"))
+  "Return `\"\"` if the supplied seq has a single element, else `\"s\"`.
+  If `with-e?` is true, return `\"es\"` for the plural case."
+  ([strs]
+   (plural strs false))
+  ([strs with-e?]
+   (if (= (count strs) 1)
+     ""
+     (if with-e? "es" "s"))))
+
 
