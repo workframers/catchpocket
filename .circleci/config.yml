@@ -73,7 +73,9 @@ workflows:
             - dependencies
           filters:
             tags:
-              only: /.*/
+              only: /^catchpocket-.*/
+            branches:
+              ignore: /.*/
       # Only deploy stuff that is tagged
       - deploy:
           requires:
