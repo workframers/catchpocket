@@ -3,7 +3,8 @@ Tim Gilbert <tim@workframe.com>
 :backend: revealjs
 :organization: Workframe
 :twitter: @othertimgilbert
-:!sectids:
+:source-highlighter: highlightjs
+:icons: font
 
 == Slide one
 
@@ -14,3 +15,14 @@ Tim Gilbert <tim@workframe.com>
 == Slide Two
 
 Hi there
+
+[source, clojure]
+--
+(ns foo)
+
+(bar/baz :something 45 [nil 0 9])
+--
+
+== Goodbye
+
+Bye now
