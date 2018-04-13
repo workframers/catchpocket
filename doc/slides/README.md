@@ -4,6 +4,7 @@ catchpocket.
 To build:
 
 ```
+mkdir -p ../../target/slides
 npm i
 node ./build.js
 open ./index.html

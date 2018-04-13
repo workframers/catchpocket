@@ -1,27 +1,82 @@
-= Title Slide
+= stillsuit and catchpocket
 Tim Gilbert <tim@workframe.com>
 :backend: revealjs
+:revealjsdir: https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0
 :organization: Workframe
 :twitter: @othertimgilbert
 :source-highlighter: highlightjs
 :icons: font
 
-== Slide one
+Two tools for lacinia / datomic integration
 
-* Foo
-* Bar
-* Baz
+== Brief intro to lacinia
 
-== Slide Two
+http://lacinia.readthedocs.io/en/latest/[lacinia] is a library implementing
+the server-side of GraphQL in Clojure. It works by accepting a **GraphQL schema**
+and a set of **resolvers**.
 
-Hi there
+[%notitle]
+== Lacinia: GraphQL schema
+
+This schema defines three objects representing music metadata.
 
 [source, clojure]
 --
-(ns foo)
-
-(bar/baz :something 45 [nil 0 9])
+{:objects
+ {:Artist
+  {:fields {:name   {:type String}
+            :id     {:type Int}
+            :albums {:type    (list :Album)
+                     :resolve [:my/artist-resolver]}}}
+  :Album
+  {:fields {:name   {:type String}
+            :year   {:type Int}
+            :tracks {:type    (list :Album)
+                     :resolve [:my/track-resolver]}}}
+  :Track
+  {:fields {:name   {:type String}
+            :number {:type Int}}}}}
 --
+
+The `:resolve` keys are where we hook into lacinia's execution.
+
+== Lacinia: Queries
+
+Here's how you might get a list of tracks:
+
+[source, graphql]
+--
+{
+  Artist(id: 1234) {
+    name
+    albums {
+      name
+      year
+    }
+  }
+}
+--
+
+== Lacinia: Resolvers
+
+To actually generate data, lacinia calls **resolvers**
+that you pass to it.
+
+[source, clojure]
+--
+(defn artist-resolver
+  [context args value]
+  {:name "The Beatles" :id 1 :albums []})
+--
+
+== Lacinia: execution model
+
+Lacinia resolvers can be divided into roughly two types.
+
+1. **Query resolvers** produce data from nowhere.
+2. **Field resolvers**
+
+
 
 == Goodbye
 
