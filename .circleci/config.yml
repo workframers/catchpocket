@@ -39,9 +39,12 @@ jobs:
     steps:
       - checkout
       - <<: *restore_anchor
-      - run: lein codox
+      - run: lein with-profile +docs codox
+      - run: lein with-profile +docs asciidoctor
       - store_artifacts:
           path: target/doc
+          path: target/manual
+          path: target/slides
   deploy:
     <<: *docker_defaults
     steps:

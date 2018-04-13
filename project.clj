@@ -38,29 +38,35 @@
           :themes     [:rdash]
           :source-uri "https://github.com/workframers/catchpocket/blob/master/{filepath}#L{line}"}
 
-  :asciidoctor {:sources "doc/*.adoc"
-                :format  :html5
-                :to-dir  "target/manual"}
+  :asciidoctor [{:sources "doc/*.adoc"
+                 :format  :html5
+                 :to-dir  "target/manual"}
+                {:sources "doc/slides/*.adoc"
+                 :format  :html5
+                 :to-dir  "target/slides"}]
 
   :aliases {"refresh" ["with-profile" "+ultra" "test-refresh"]
             "preview" ["with-profile" "+test" "run" "-m" "catchpocket.preview"]}
 
-  :profiles {:dev   {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
-                                    [jonase/eastwood "0.2.5"]
-                                    [com.jakemccrary/lein-test-refresh "0.22.0"]
-                                    [lein-cloverage "1.0.10"]
-                                    [lein-codox "0.10.3"]
-                                    [lein-shell "0.5.0"]
-                                    [lein-asciidoctor "0.1.14" :exclusions [org.slf4j/slf4j-api]]
-                                    [lein-ancient "0.6.15"
-                                     :exclusions [com.fasterxml.jackson.core/jackson-annotations
-                                                  com.fasterxml.jackson.core/jackson-databind
-                                                  com.fasterxml.jackson.core/jackson-core]]]
-                     :dependencies [[codox-theme-rdash "0.1.2"]
-                                    [com.walmartlabs/lacinia-pedestal "0.7.0"]
-                                    [io.forward/yaml "1.0.7" :exclusions [org.flatland/ordered]]]}
-                    :ultra {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
-             :test  {:resource-paths ["test/resources"]}}
+  :profiles {:dev     {:plugins      [[s3-wagon-private "1.3.1" :exclusions [commons-logging]]
+                                      [jonase/eastwood "0.2.5"]
+                                      [com.jakemccrary/lein-test-refresh "0.22.0"]
+                                      [lein-cloverage "1.0.10"]
+                                      [lein-codox "0.10.3"]
+                                      [lein-shell "0.5.0"]]
+                       :dependencies [[codox-theme-rdash "0.1.2"]
+                                      [com.walmartlabs/lacinia-pedestal "0.7.0"]
+                                      [io.forward/yaml "1.0.7" :exclusions [org.flatland/ordered]]]}
+             :docs    {:plugins      [[lein-codox "0.10.3"]
+                                      [lein-asciidoctor "0.1.15" :exclusions [org.slf4j/slf4j-api]]]
+                       :dependencies [[codox-theme-rdash "0.1.2"]]}
+             :ancient {:plugins [[lein-ancient "0.6.15"
+                                  :exclusions [commons-logging
+                                               com.fasterxml.jackson.core/jackson-annotations
+                                               com.fasterxml.jackson.core/jackson-core
+                                               com.fasterxml.jackson.core/jackson-databind]]]}
+             :ultra   {:plugins [[venantius/ultra "0.5.2" :exclusions [org.clojure/clojure]]]}
+             :test    {:resource-paths ["test/resources"]}}
 
   :release-tasks [;; Make sure we're up to date
                   ["vcs" "assert-committed"]

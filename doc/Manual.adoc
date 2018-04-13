@@ -1,0 +1,18 @@
+= catchpocket manual
+Tim Gilbert <tim@workframe.com>
+v0.1, 2018-04-13
+:sectanchors:
+
+`catchpocket` is a library which generates a `lacinia` configuration file
+from an existing datomic schema. Together with the `stillsuit` library,
+this allows for easy access to datomic over GraphQL.
+
+== How it works
+
+[#img-overview]
+.Catchpocket Overview
+image::overview.png[alt=Overview diagram, width=970 height=840]
+
+== The rest of the manual
+
+Still in progress!
