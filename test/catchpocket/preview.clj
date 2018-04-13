@@ -23,8 +23,6 @@
                                   :sort?  true
                                   :indent 0
                                   :key-depth-color [:red :yellow :cyan :green :blue :magenta]}})
-
-
     schema))
 
 (defn -main

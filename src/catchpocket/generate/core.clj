@@ -5,7 +5,6 @@
             [catchpocket.generate.enums :as enums]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
-            [fipp.edn :as fipp]
             [zprint.core :as zp]
             [catchpocket.lib.util :as util]
             [stillsuit.lib.util :as su]
@@ -74,7 +73,6 @@
       (do
         (log/warnf "Skipping unknown field %s with type %s."
                    (:attribute/ident field) field-type)))))
-
 
 (defn- make-single-field [field config]
   (let [{:attribute/keys [cardinality doc]} field

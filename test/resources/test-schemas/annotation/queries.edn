@@ -11,6 +11,7 @@
   {:id "1"}
   :expected
   {:data {:Artist {:name "Crass"}}}}
+
  :test-nil-result
  {:query
   "

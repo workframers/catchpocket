@@ -1,0 +1,13 @@
+{:test-horsey
+ {:query
+  "
+  query keywords($id: String!) {
+    Animal_Keyword(id: $id) {
+      movement
+    }
+  }
+  "
+  :variables
+  {:id "horse"}
+  :expected
+  {:data {:Animal_Keyword {:movement :QUADROPED}}}}}

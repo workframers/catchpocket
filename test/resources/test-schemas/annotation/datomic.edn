@@ -66,7 +66,7 @@
   {:db/id                          :album/year
    :catchpocket/lacinia-field-name :override_year}
   {:db/id                          :track/position
-   :catchpocket/lacinia-field-type :Int}]
+   :catchpocket/lacinia-field-type 'Int}]
 
  ;; Data
  [{:db/id       "crass"

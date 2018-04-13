@@ -1,4 +1,4 @@
-(ns ^:watch catchpocket.test.enums
+(ns catchpocket.test.enums
   (:require [clojure.test :refer :all]
             [catchpocket.test-util :as tu]
             [clojure.tools.logging :as log]))

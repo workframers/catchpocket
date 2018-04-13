@@ -1,0 +1,131 @@
+;; Schema to test cardinality.
+[[;; Person
+  {:db/ident       :person/id
+   :db/valueType   :db.type/long
+   :db/cardinality :db.cardinality/one
+   :db/unique      :db.unique/identity}
+  {:db/ident       :person/name
+   :db/valueType   :db.type/string
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :person/invited-by
+   :db/valueType   :db.type/ref
+   :db/doc         "Ref to the person who invited this person"
+   :db/cardinality :db.cardinality/one}
+  ;; Message
+  {:db/ident       :message/id
+   :db/valueType   :db.type/long
+   :db/cardinality :db.cardinality/one
+   :db/unique      :db.unique/identity}
+  {:db/ident       :message/text
+   :db/valueType   :db.type/string
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :message/created
+   :db/valueType   :db.type/instant
+   :db/doc         "Time at which this message was created"
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :message/author
+   :db/valueType   :db.type/ref
+   :db/doc         "Ref to the person who wrote this message"
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :message/mentions
+   :db/doc         "Ref to every person mentioned in this message"
+   :db/valueType   :db.type/ref
+   :db/cardinality :db.cardinality/many}
+  ;; Thread
+  {:db/ident       :thread/id
+   :db/valueType   :db.type/long
+   :db/cardinality :db.cardinality/one
+   :db/unique      :db.unique/identity}
+  {:db/ident       :thread/subject
+   :db/valueType   :db.type/string
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :thread/created
+   :db/valueType   :db.type/instant
+   :db/doc         "Time at which this thread was created"
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :thread/author
+   :db/valueType   :db.type/ref
+   :db/doc         "Ref to the person who created this thread"
+   :db/cardinality :db.cardinality/one}
+  {:db/ident       :thread/messages
+   :db/valueType   :db.type/ref
+   :db/doc         "List of messages in the thread"
+   :db/cardinality :db.cardinality/many}
+  {:db/ident       :thread/tags
+   :db/doc         "List of tags"
+   :db/valueType   :db.type/ref
+   :db/cardinality :db.cardinality/many}
+  ;; Tags
+  {:db/ident       :tag/value
+   :db/valueType   :db.type/string
+   :db/cardinality :db.cardinality/one
+   :db/unique      :db.unique/identity}]
+
+ ;; Data
+ [{:db/id       "cheech-eid"
+   :person/id   1
+   :person/name "Cheech"}
+  {:db/id       "chong-eid"
+   :person/id   2
+   :person/name "Chong"}
+
+  {:db/id       "alice-eid"
+   :person/id   3
+   :person/name "Alice"}
+  {:db/id             "bob-eid"
+   :person/id         4
+   :person/name       "Bob"
+   :person/invited-by "alice-eid"}
+  {:db/id             "carol-eid"
+   :person/id         5
+   :person/name       "Carol"
+   :person/invited-by "bob-eid"}
+  {:db/id             "dave-eid"
+   :person/id         6
+   :person/name       "Dave"
+   :person/invited-by "carol-eid"}
+
+  {:db/id     "tag-stuff-eid"
+   :tag/value "stuff"}
+  {:db/id     "tag-cops-eid"
+   :tag/value "cops"}
+
+  {:db/id          "dave-thread-eid"
+   :thread/id      1
+   :thread/subject "Dave's not here"
+   :thread/created #inst "1971-08-01T10:01:00"
+   :thread/author  "cheech-eid"
+   :thread/tags    ["tag-stuff-eid" "tag-cops-eid"]}
+  {:message/id      1
+   :message/author  "chong-eid"
+   :message/text    "Who is it?"
+   :message/created #inst "1971-08-01T10:01:00"}
+  {:message/id       2
+   :message/author   "cheech-eid"
+   :message/text     "It's me Dave. Open up, man, I got the stuff."
+   :message/created  #inst "1971-08-01T10:02:00"
+   :message/mentions ["dave-eid"]}
+  {:message/id      3
+   :message/author  "chong-eid"
+   :message/text    "Who?"
+   :message/created #inst "1971-08-01T10:03:00"}
+  {:message/id       4
+   :message/author   "cheech-eid"
+   :message/text     "It's Dave, man, open up."
+   :message/created  #inst "1971-08-01T10:04:00"
+   :message/mentions ["dave-eid"]}
+  {:message/id       5
+   :message/author   "chong-eid"
+   :message/text     "Dave?"
+   :message/created  #inst "1971-08-01T10:05:00"
+   :message/mentions ["dave-eid"]}
+  {:message/id       6
+   :message/author   "cheech-eid"
+   :message/text     "Yeah, Dave, man, open up, I think the cops saw me."
+   :message/created  #inst "1971-08-01T10:06:00"
+   :message/mentions ["dave-eid"]}
+  {:message/id       7
+   :message/author   "chong-eid"
+   :message/text     "Dave's not here."
+   :message/created  #inst "1971-08-01T10:07:00"
+   :message/mentions ["dave-eid"]}]]

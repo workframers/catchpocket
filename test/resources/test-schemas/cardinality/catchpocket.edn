@@ -1,0 +1,18 @@
+{
+ ;; Schema-generation settings
+ :catchpocket/names {:fields :camelCase}
+ :catchpocket/references {:message/author
+                          #:catchpocket{:reference-to        :Person
+                                        :backref-name        :messages
+                                        :backref-cardinality :stillsuit.cardinality/many}
+                          :thread/author
+                          #:catchpocket{:reference-to :Person
+                                        :backref-name :threads}
+                          :person/invited-by
+                          #:catchpocket{:reference-to :Person
+                                        :cardinality  :stillsuit.cardinality/one
+                                        :backref-name :invited
+                                        :backref-cardinality :stillsuit.cardinality/one}}
+
+ :stillsuit/compile?     true}
+

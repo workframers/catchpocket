@@ -13,7 +13,7 @@
 ;; them out into a third library
 
 (def ^:private test-db-prefix "datomic:mem://catchpocket-test-")
-(def all-setup-names [:music :capitalize :enums :annotation :rainbow])
+(def all-setup-names [:messages :music :capitalize :enums :annotation :rainbow])
 (def ^:private db-store (atom {}))
 
 (defn- db-uri [db-name]

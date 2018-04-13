@@ -1,0 +1,50 @@
+{:test-get-thread
+ {:query
+  "
+  query getThreadById($id: JavaLong!) {
+    Thread(id: $id) {
+      subject
+    }
+  }
+  "
+  :variables
+  {:id "1"}
+  :expected
+  {:data {:Thread {:subject "Dave's not here"}}}}
+
+ :test-nil-result
+ {:query
+  "
+  query getThreadById($id: JavaLong!) {
+    Thread(id: $id) {
+      subject
+    }
+  }
+  "
+  :variables
+  {:id "-666"}
+  :expected
+  {:data {:Thread nil}}}
+
+ :test-backref
+ {:query
+  "
+  query forward($id: JavaLong!) {
+    Person(id: $id) {
+      name
+      invited {
+        name
+      }
+      invitedBy {
+        name
+      }
+    }
+  }
+  "
+  :variables
+  {:id "5"}
+  :expected
+  {:data {:Person
+          {:name "Carol"
+           :invited {:name "Dave"}
+           :invitedBy {:name "Bob"}}}}}}

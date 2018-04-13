@@ -10,3 +10,10 @@
       (let [setup (tu/stillsuit-setup setup-name)]
         (when (::tu/query-doc setup)
           (tu/verify-queries-from-edn! setup))))))
+
+(deftest ^:watch run-a-queries
+  (doseq [setup-name [:messages]]
+    (testing (format "Running queries for %s: " setup-name)
+      (let [setup (tu/stillsuit-setup setup-name)]
+        (when (::tu/query-doc setup)
+          (tu/verify-queries-from-edn! setup))))))
