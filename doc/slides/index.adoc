@@ -21,7 +21,7 @@ and a set of **resolvers**.
 This schema defines three objects representing music metadata.
 
 [source, clojure]
---
+----
 {:objects
  {:Artist
   {:fields {:name   {:type String}
@@ -36,7 +36,7 @@ This schema defines three objects representing music metadata.
   :Track
   {:fields {:name   {:type String}
             :number {:type Int}}}}}
---
+----
 
 The `:resolve` keys are where we hook into lacinia's execution.
 
@@ -45,9 +45,9 @@ The `:resolve` keys are where we hook into lacinia's execution.
 Here's how you might get a list of tracks:
 
 [source, graphql]
---
-{
-  Artist(id: 1234) {
+----
+query getTracks($id: Int) {
+  Artist(id: $id) {
     name
     albums {
       name
@@ -55,7 +55,7 @@ Here's how you might get a list of tracks:
     }
   }
 }
---
+----
 
 == Lacinia: Resolvers
 
@@ -63,20 +63,50 @@ To actually generate data, lacinia calls **resolvers**
 that you pass to it.
 
 [source, clojure]
---
+----
 (defn artist-resolver
   [context args value]
   {:name "The Beatles" :id 1 :albums []})
---
+----
 
 == Lacinia: execution model
 
 Lacinia resolvers can be divided into roughly two types.
 
 1. **Query resolvers** produce data from nowhere.
-2. **Field resolvers**
+2. **Field resolvers** are used to navigate the graph
 
+The beauty of lacinia is the ability to intercept its
+execution at any stage of the graph.
 
+== Stillsuit: basic idea
+
+Stillsuit is a library that provides features for accessing
+datomic databases via lacinia resolvers.
+
+* Resolvers
+* Enums
+* Scalars
+
+== Stillsuit: execution model
+
+image::https://raw.githubusercontent.com/workframers/stillsuit/develop/doc/stillsuit-summary.png?token=AAFxEnFZ-ofbOsMpWVc5CB729WjMtvfDks5a3lpywA%3D%3D[summary]
+
+== Stillsuit: limitations
+
+* I have no idea what your database looks like
+** Stillsuit makes assumptions that might not be correct
+* Stillsuit is based on the Entity API
+** Therefore, Datomic Cloud is not supported
+* Pagination can be problematic
+
+== Catchpoket: basic idea
+
+* Stillsuit provides an easy way to connect to datomic
+* But you still have to write a lot of stuff by hand
+
+Catchpocket is a tool to scan an existing datomic database and auto-generate
+a stillsuit schema for you.
 
 == Goodbye
 
