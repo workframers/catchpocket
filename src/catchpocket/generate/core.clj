@@ -5,7 +5,6 @@
             [catchpocket.generate.enums :as enums]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
-            [fipp.edn :as fipp]
             [zprint.core :as zp]
             [catchpocket.lib.util :as util]
             [stillsuit.lib.util :as su]
@@ -209,16 +208,19 @@
         schema   (queries/attach-queries objects ent-map config)]
     schema))
 
-(def zprint-config {:map {:comma?   false
-                          :sort?    true
-                          :indent   0
-                          :justify? true}})
+(def default-zprint-config {:map {:comma?   false
+                                  :sort?    true
+                                  :indent   0
+                                  :justify? true}})
+(def zprint-width 120)
 
-(defn- write-file! [schema config]
-  (let [filename (:catchpocket/schema-file config)]
-    (io/make-parents filename)
-    (log/infof "Saving schema to %s..." filename)
-    (spit filename (zp/zprint-str schema 120 zprint-config))))
+(defn- write-file! [schema {:catchpocket/keys [schema-file zprint? zprint-config]}]
+  (let [content   (if zprint?
+                    (zp/zprint-str schema zprint-width (or zprint-config default-zprint-config))
+                    (pr-str schema))]
+    (io/make-parents schema-file)
+    (log/infof "Saving schema to %s..." schema-file)
+    (spit schema-file content)))
 
 (defn generate-and-write! [{:keys [:catchpocket/datomic-uri] :as config}]
   (log/infof "Connecting to %s..." datomic-uri)

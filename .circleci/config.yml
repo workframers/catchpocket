@@ -1,71 +1,91 @@
 version: 2
 
-docker_defaults: &docker_defaults
+docker-defaults: &docker-defaults
   docker:
-    - image: 191234350269.dkr.ecr.us-east-1.amazonaws.com/circleci-build:1.3
+    - image: 191234350269.dkr.ecr.us-east-1.amazonaws.com/circleci-build:1.4
       environment:
         JAVA_OPTS: "-Xms512m -Xmx3200m"
         LEIN_ROOT: nbd
 
-restore_anchor: &restore_anchor
+restore-anchor: &restore-anchor
   restore_cache:
-    key: workframe-catchpocket-{{ checksum "project.clj" }}
+    key: workframe-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "project.clj" }}
 
 jobs:
   dependencies:
-    <<: *docker_defaults
+    <<: *docker-defaults
     steps:
       - checkout
-      - <<: *restore_anchor
-      - run: lein with-profile +test deps
+      - <<: *restore-anchor
+      - run: lein with-profile +test,+docs deps
       - run: lein jar
       - save_cache:
-          key: workframe-catchpocket-{{ checksum "project.clj" }}
+          key: workframe-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ checksum "project.clj" }}
           paths:
             - ~/.m2
             - target
   tests:
-    <<: *docker_defaults
+    <<: *docker-defaults
     steps:
       - checkout
-      - <<: *restore_anchor
+      - <<: *restore-anchor
       - run: lein with-profile +test cloverage -s test --junit
       - store_test_results:
           path: target/coverage
       - store_artifacts:
           path: target/coverage
   docs:
-    <<: *docker_defaults
+    <<: *docker-defaults
     steps:
       - checkout
-      - <<: *restore_anchor
+      - <<: *restore-anchor
       - run: lein with-profile +docs codox
       - run: lein with-profile +docs asciidoctor
       - store_artifacts:
           path: target/doc
           path: target/manual
   slides:
-    <<: *docker_defaults
+    <<: *docker-defaults
     working_directory: ~/project/docs/slides
     steps:
       - checkout
-      - <<: *restore_anchor
+      - <<: *restore-anchor
       - run: mkdir -p ../../target/slides
       - run: npm i
       - run: node ./build.js
       - store_artifacts:
           path: target/slides
-  deploy:
-    <<: *docker_defaults
+  s3-deploy:
+    <<: *docker-defaults
     steps:
       - checkout
-      - <<: *restore_anchor
+      - <<: *restore-anchor
       - run:
           name: Compile jar
           command: lein install
       - deploy:
           name: Deploy to S3
           command: lein deploy workframe-private
+  clojars-push:
+    <<: *docker-defaults
+    steps:
+      - checkout
+      - <<: *restore-anchor
+      - run:
+          name: Compile jar
+          command: lein install
+      - deploy:
+          name: Deploy to Clojars
+          command: lein deploy clojars
+  doc-deploy:
+    <<: *docker-defaults
+    working_directory: ~/project/docs
+    steps:
+      - checkout
+      - <<: *restore-anchor
+      - deploy:
+          name: Deploy docs
+          command: ./deploy.sh
 
 workflows:
   version: 2
@@ -73,45 +93,32 @@ workflows:
     jobs:
       - dependencies:
           filters:
-            tags:
-              only: /.*/
+            tags: { only: /.*/ }
       - tests:
           requires:
             - dependencies
           filters:
-            tags:
-              only: /.*/
+            tags: { only: /.*/ }
       - docs:
           requires:
             - dependencies
-          filters:
-            tags:
-              only: /^catchpocket-.*/, /docs.*/
-            branches:
-              ignore: /.*/
       - slides:
           requires:
             - dependencies
           filters:
-            tags:
-              only: /^catchpocket-.*/, /docs.*/
-            branches:
-              ignore: /.*/
+            tags: { only: [ /^catchpocket-.*/, /docs-.*/ ] }
+            branches: { ignore: /.*/ }
       - doc-deploy:
           requires:
             - docs
             - slides
           filters:
-            tags:
-              only: /^catchpocket-.*/, /docs.*/
-            branches:
-              ignore: /.*/
+            tags: { only: [ /^catchpocket-.*/, /docs-.*/ ] }
+            branches: { ignore: /.*/ }
       # Only deploy stuff that is tagged
-      - deploy:
+      - s3-deploy:
           requires:
             - tests
           filters:
-            tags:
-              only: /^catchpocket-.*/
-            branches:
-              ignore: /.*/
+            tags: { only: [ /^catchpocket-.*/ ] }
+            branches: { ignore: /.*/ }
