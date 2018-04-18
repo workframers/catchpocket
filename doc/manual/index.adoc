@@ -11,7 +11,7 @@ this allows for easy access to datomic over GraphQL.
 
 [#img-overview]
 .Catchpocket Overview
-image::overview.png[alt=Overview diagram, width=970 height=840]
+image::../image/overview.png[alt=Overview diagram, width=970 height=840]
 
 == The rest of the manual
 

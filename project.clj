@@ -38,7 +38,7 @@
           :themes     [:rdash]
           :source-uri "https://github.com/workframers/catchpocket/blob/master/{filepath}#L{line}"}
 
-  :asciidoctor [{:sources "doc/*.adoc"
+  :asciidoctor [{:sources "doc/manual/*.adoc"
                  :format  :html5
                  :to-dir  "target/manual"}
                 {:sources "doc/slides/*.adoc"
