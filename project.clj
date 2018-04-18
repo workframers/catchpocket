@@ -40,10 +40,7 @@
 
   :asciidoctor [{:sources "doc/manual/*.adoc"
                  :format  :html5
-                 :to-dir  "target/manual"}
-                {:sources "doc/slides/*.adoc"
-                 :format  :html5
-                 :to-dir  "target/slides"}]
+                 :to-dir  "target/manual"}]
 
   :aliases {"refresh" ["with-profile" "+ultra" "test-refresh"]
             "preview" ["with-profile" "+test" "run" "-m" "catchpocket.preview"]}
