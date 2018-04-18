@@ -163,8 +163,8 @@ features for accessing datomic databases via lacinia resolvers. It provides:
 [%notitle]
 == Stillsuit: execution model
 
-[link=https://raw.githubusercontent.com/workframers/stillsuit/develop/doc/stillsuit-summary.png?token=AAFxEnFZ-ofbOsMpWVc5CB729WjMtvfDks5a3lpywA%3D%3D]
-image::https://raw.githubusercontent.com/workframers/stillsuit/develop/doc/stillsuit-summary.png?token=AAFxEnFZ-ofbOsMpWVc5CB729WjMtvfDks5a3lpywA%3D%3D[summary,967,840]
+[link=http://docs.workframe.com/catchpocket/current/image/stillsuit-summary.png]
+image::http://docs.workframe.com/catchpocket/current/image/stillsuit-summary.png[diagram]
 
 == Stillsuit: basic API
 
