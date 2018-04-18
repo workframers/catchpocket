@@ -255,8 +255,8 @@ datomic database and auto-generates a stillsuit configuration for you.
 [%notitle]
 == Catchpocket - diagram
 
-[link=https://raw.githubusercontent.com/workframers/catchpocket/develop/doc/overview.png?token=AAFxEqiudSJpDEmBN9QVMs7WgV6mGXwGks5a30HQwA%3D%3D]
-image::https://raw.githubusercontent.com/workframers/catchpocket/develop/doc/overview.png?token=AAFxEqiudSJpDEmBN9QVMs7WgV6mGXwGks5a30HQwA%3D%3D[diagram]
+[link=http://docs.workframe.com/catchpocket/current/image/overview.png]
+image::http://docs.workframe.com/catchpocket/current/image/overview.png[diagram]
 
 == Catchpocket - ref generation
 
