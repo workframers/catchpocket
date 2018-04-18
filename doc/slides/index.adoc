@@ -1,0 +1,312 @@
+= stillsuit and catchpocket
+Tim Gilbert <tim@workframe.com>
+:backend: revealjs
+:revealjsdir: https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0
+:revealjs_theme: solarized
+:organization: Workframe
+:twitter: @othertimgilbert
+:source-highlighter: highlightjs
+:icons: font
+
+Two tools for lacinia / datomic integration
+
+https://github.com/workframers/stillsuit
+
+https://github.com/workframers/catchpocket
+
+== Agenda
+
+* Brief intro to lacinia
+* Stillsuit
+* Catchpocket
+
+== Brief intro to lacinia
+
+* http://lacinia.readthedocs.io/en/latest/[lacinia] is a library from WalmartLabs that
+  implements the server-side of GraphQL in Clojure. It works by accepting a **GraphQL schema**
+  and a set of **resolvers**.
+* It is awesome and has great documentation!
+
+== Lacinia: execution model
+
+* Lacinia resolvers can be divided into roughly two types.
+
+1. **Query resolvers** produce data from nowhere.
+2. **Field resolvers** are used to navigate graph data.
+
+* The beauty of lacinia is the ability to intercept its
+ execution at any stage of the graph.
+
+[%notitle]
+== Lacinia: GraphQL schema
+
+This schema defines two objects and one top-level query.
+
+[source, clojure]
+----
+{:objects {:Artist {:fields {:name   {:type String}
+                             :id     {:type Int}
+                             :albums {:type    (list :Album)
+                                      :resolve [:my/album-resolver]}}}
+           :Album  {:fields {:name   {:type String}
+                             :year   {:type Int}
+                             :tracks {:type    (list :Track)
+                                      :resolve [:my/track-resolver]}}}}
+ :queries {:Artist {:type    :Artist
+                    :args    {:id {:type (non-null Int)}}
+                    :resolve [:my/artist-query]}}}
+----
+
+The `:resolve` keys are where we hook into lacinia's execution.
+
+== Lacinia: Queries
+
+Getting albums from the previous schema:
+
+[source, graphql]
+----
+query getAlbums($id: Int) {
+  Artist(id: $id) {
+    name
+    albums {
+      name
+      year
+    }
+  }
+}
+----
+
+* This will call the `:Artist` query resolver and the `:albums` field resolver.
+
+== Lacinia: Resolvers
+
+To actually generate data, lacinia calls **resolvers**
+that you provide to it.
+
+[source, clojure]
+----
+(defn- artist-resolver
+  [context arguments value]
+  {:name "The Beatles" :id 1 :albums []})
+
+;; This is passed to (lacinia/execute)
+(def my-resolver-map
+  {:my/artist-resolver artist-resolver})
+----
+
+* The `value` argument contains the data structure returned by the parent resolver.
+
+== Datomic Entity API
+
+Datomic's https://docs.datomic.com/on-prem/entities.html[Entity API] provides a convenient
+interface to the graphier bits of datomic's data model.
+
+* With the entity API, the attributes of entities are _lazily resolved_.
+* This is a good fit for the GraphQL model, where the client may not request every field of entity
+* Note that it is not available in Datomic Cloud, however
+
+== Stillsuit: basic idea
+
+https://github.com/workframers/stillsuit[`stillsuit`] is a library that provides
+features for accessing datomic databases via lacinia resolvers. It provides:
+
+* A way of stashing a datomic connection in the Lacinia `context`
+* Resolvers which resolve primitive API attributes (int, string, etc) from datomic entities
+* Resolvers to handle `:db.type/ref` attributes (graph edges)
+
+== Stillsuit: more features
+
+* Scalars to serialize and deserialize most datomic types to strings
+* Support for GraphQL enums represented as datomic enum attributes or keyword values
+* Query resolvers for entities based on datomic unique attributes
+* datomic back-reference support
+
+[%notitle]
+== Stillsuit: basic attribute access
+
+
+[source, clojure]
+----
+{:objects
+ {:Person
+  {:fields
+   {:name       {:type String}
+    :id         {:type :JavaLong}
+    :isVerified {:type    (non-null Boolean)
+                 :resolve [:stillsuit/ref
+                           {:stillsuit/attribute    :person/verified?
+                            :stillsuit/lacinia-type Boolean}]}}}}}
+----
+
+* Expose `:person/verified?` attribute of a `:person` entity as the GraphQL field `isVerified`
+* `:person/name` and `:person/id` will be resolved by the *default resolver*.
+
+[%notitle]
+== Stillsuit: basic attribute access
+
+[source, clojure]
+----
+{:objects
+ {:Person
+  {:fields
+   {:projects
+    {:type    (list (non-null :Project))
+     :resolve [:stillsuit/ref
+               #:stillsuit{:attribute    :project/_members
+                           :lacinia-type :Project
+                           :sort-key     :project/name}]}}}}}
+----
+
+* A `:project` entity may refer to a set of people via `:project/members`
+* This definition sets up the backwards link from a person to the projects
+
+[%notitle]
+== Stillsuit: execution model
+
+[link=http://docs.workframe.com/catchpocket/current/image/stillsuit-summary.png]
+image::http://docs.workframe.com/catchpocket/current/image/stillsuit-summary.png[diagram]
+
+== Stillsuit: basic API
+
+* Stillsuit takes as input all of the things you would normally pass to `(lacinia/execute)`,
+  plus a config map and a datomic connection.
+* Its main function, `(stillsuit/decorate)`, adds a bunch of stillsuit stuff to that
+* You can then pass the result to lacinia, or there's a simple wrapper to have stillsuit call lacinia
+* Stillsuit itself consists of a bunch of library routines implementing resolvers etc
+
+== Stillsuit: what you write
+
+* Configuration mapping datomic attributes to GraphQL fields
+* Query resolvers that return entities
+* Query resolvers that return lists of entities
+* Field resolvers for derived data
+* Mutation resolvers that (may) transact data
+
+== Stillsuit: execution API sample
+
+[source, clojure]
+----
+(defn run-query [query variables]
+  (let [options   #:stillsuit{:schema     (load-schema-file)
+                              :config     {}
+                              :connection (d/connect "datomic:ddb://foo")
+                              :resolvers  {:my/artist-resolver artist-resolver}}
+        decorated (stillsuit/decorate options)
+        schema    (:stillsuit/schema decorated)
+        context   (:stillsuit/app-context decorated)]
+    (lacinia/execute schema query variables context)))
+----
+
+(`query` and `variables` would be coming from your http request here)
+
+== Stillsuit: execution convenience wrapper
+
+[source, clojure]
+----
+(defn run-query [query variables]
+  (let [options   #:stillsuit{:schema     (load-schema-file)
+                              :config     {}
+                              :connection (d/connect "datomic:ddb://foo")
+                              :resolvers  {:my/artist-resolver artist-resolver}}
+        decorated (stillsuit/decorate options)]
+    (stillsuit/execute decorated query variables)))
+----
+
+(This is equivalent to the last slide)
+
+== Stillsuit: limitations
+
+* I have no idea what your database looks like
+** Therefore stillsuit's data-model assumptions may not be correct for your data
+* Datomic Cloud is not supported (no Entity API)
+* Pagination can be problematic for `ref` attributes
+* Schema files can get pretty verbose
+
+== Catchpocket: basic idea
+
+* Stillsuit provides an easy interface to datomic
+* But you still have to write a lot of stuff by hand
+** A lot: every attribute you want to expose
+
+https://github.com/workframers/catchpocket[`catchpocket`] scans an existing
+datomic database and auto-generates a stillsuit configuration for you.
+
+== Catchpocket - features
+
+* Creates stillsuit field definitions for every datomic attribute it can find
+* Creates object definitions by inference from datomic attribute namespaces
+** You can whitelist or blacklist datomic attributes and/or namespaces
+* Exposes datomic `:db/doc` data as GraphQL descriptions
+
+== Catchpocket - more features
+
+* Generation of queries for every entity with a unique attribute
+* Configurable name generation (`camelCase` / `snake_case` etc)
+* Generates GraphQL enums from keyword or datomic enum references
+** Capable of scanning a database to generate values
+
+== Catchpocket - running / execution
+
+* Just a bunch of Clojure code(tm)
+* Run from `lein` and/or `deps.edn` from command-line
+* Can be run as a library, but probably works better as a build step
+  (dependencies assume it will be a build step)
+
+[%notitle]
+== Catchpocket - diagram
+
+[link=http://docs.workframe.com/catchpocket/current/image/overview.png]
+image::http://docs.workframe.com/catchpocket/current/image/overview.png[diagram]
+
+== Catchpocket - ref generation
+
+* Datomic graph edges (`:db.type/ref`) can point to any type of entity
+* Therefore you need to tell catchpocket what type you expect the other node to be
+* Most straightforward way is via the catchpocket config
+* You can also attach catchpocket metadata to the attributes themselves
+
+== Catchpocket - more ref generation
+
+* All datomic edges are two-way; catchpocket will generate both sides of the link
+* Reasonably smart about cardinality, overrideable
+** You can tell it a backref is cardinality-one
+
+== Catchpocket - sample
+
+[source, clojure]
+----
+{:catchpocket/references
+ {:secret-agent/country-of-origin
+  {:catchpocket/reference-to :Country
+   :catchpocket/backref-name :secret_agents}}}
+----
+
+* A secret agent entity has a `:secret-agent/country-of-origin` attribute
+* This config generates a `country_of_origin` field in the `Agent` object
+* It also auto-generates a `secret_agents` field in the `Country` object
+
+== Current state of the projects
+
+* catchpocket and stillsuit are both alpha software, and their APIs might change
+* We use them, but for low-traffic, relatively "small data" applications
+* Focus has been on features, not performance
+* Definitely interested in feedback
+** We only know what our own schemas look like
+* Published under the Apache 2 license
+
+== Some things we want to add
+
+* Docs need some love
+** Our goal is quality parity with lacinia docs
+* Pagination of large result sets
+* Exposing datomic features (history API, etc)
+* Better spec validation of config files
+* Union types
+
+== Thanks!
+
+You can find both projects online at our github page:
+
+https://github.com/workframers/
+
+We are usually around on Clojurians Slack in `#graphql` and `#datomic`

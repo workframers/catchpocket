@@ -4,6 +4,8 @@ from a [datomic](http://www.datomic.com/) database. The schemas it
 generates work with the [stillsuit](https://github.com/workframers/stillsuit)
 library at runtime to resolve GraphQL queries against the database.
 
+catchpocket is in alpha and it is possible the API and config formats will change.
+
 ## Setup
 
 catchpocket depends on the datomic libraries being installed locally. To do so:
@@ -38,6 +40,15 @@ See the [stillsuit-sample](https://github.com/workframers/stillsuit-sample)
 project for some instructions on quickly setting up `graphiql` for a datomic
 database.
 
+## Documentation
+
+Documentation is still pretty sparse, sorry, but we want to improve it.
+Once it's ready, the user manual will be online
+[here](http://docs.workframe.com/catchpocket/current/manual/).
+
+See also [these slides](http://docs.workframe.com/catchpocket/current/slides/)
+for a brief talk about stillsuit and catchpocket.
+
 ## How does it work?
 
 catchpocket inspects a datomic database and gets metadata about its attributes;
@@ -46,7 +57,7 @@ to lacinia schema information. It then generates a lacinia schema configuration.
 At runtime, the schema can be used with the `stillsuit` library to execute
 queries against the database.
 
-![Overview diagram](doc/overview.png "Overview")
+![Overview diagram](doc/image/overview.png "Overview")
 
 catchpocket works by making a bunch of assumptions about the way your data
 is set up that may not be true (and are conventions datomic doesn't enforce):
@@ -57,8 +68,8 @@ is set up that may not be true (and are conventions datomic doesn't enforce):
 - It assumes that attribute refs always point to the same type of entity.
 
 These assumptions are probably incorrect for many datomic databases. You can
-control what actions catchpocket takes via the config file to ameliorate some
-of the attendant problems.
+configure catchpocket's operation via the config file to ameliorate some
+of the resulting problems.
 
 ## Configuration
 
@@ -92,12 +103,9 @@ cool stuff. Where catchpocket is database-first, umlaut is document-first.
 In Frank Herbert's _Dune_ novels, a catchpocket is a place where precious water
 is stored.
 
-
 # License
 
-Copyright © 2018 Workframe, Inc.
-
-Distributed under the Apache License, Version 2.0.
+Licensed under Apache 2.0 license, see LICENSE. Copyright (c) 2018 Workframe.
 
 # TODO:
 - Security / predicates on attributes

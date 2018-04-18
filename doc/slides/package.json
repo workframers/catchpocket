@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "asciidoctor-reveal.js": "^1.1.3"
+  }
+}
