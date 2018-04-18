@@ -1,4 +1,4 @@
-(defproject com.workframe/catchpocket "0.6.0-SNAPSHOT"
+(defproject com.workframe/catchpocket "0.6.0"
   :description "datomic-to-lacinia schema extractor"
   :url "https://github.com/workframers/catchpocket"
   :pedantic? :warn
