@@ -2,11 +2,10 @@
   :description "datomic-to-lacinia schema extractor"
   :url "https://github.com/workframers/catchpocket"
   :pedantic? :warn
-  :license {:name "EPL"
-            :url  "http://www.eclipse.org/legal/epl-v20.html"}
+  :license {:name "Apache 2.0"
+            :url  "https://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/core.async "0.4.474"]
                  [org.clojure/tools.cli "0.3.5"]
                  [com.workframe/stillsuit "0.7.0"]
                  [fipp "0.6.12"]
