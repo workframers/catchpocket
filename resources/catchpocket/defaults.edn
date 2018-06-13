@@ -1,5 +1,6 @@
 ;; This is the base catchpocket file, which can be overridden by the one specified on the command-line
 {:catchpocket/version           "0.1"
  :catchpocket/schema-file       "target/catchpocket/schema.edn"
+ :catchpocket/zprint?           true
  :stillsuit/db-id-name          :dbId
  :stillsuit/datomic-entity-type :DatomicEntity}
